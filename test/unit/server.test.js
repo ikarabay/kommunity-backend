@@ -1,5 +1,5 @@
 import http from 'http';
-import { startServer } from '@/server';
+import { startServer } from '$/server';
 
 let server;
 
@@ -7,15 +7,22 @@ beforeAll(() => {
   server = startServer();
 });
 
+test('server returns 404', (done) => {
+  http.get('http://localhost:4008/unknown-route', (res) => {
+    expect(res.statusCode).toBe(404);
+    done();
+  });
+});
+
 test('server returns 401', (done) => {
-  http.get('http://localhost:3008/member/me', (res) => {
+  http.get('http://localhost:4008/api/v1/member/me', (res) => {
     expect(res.statusCode).toBe(401);
     done();
   });
 });
 
 test('server - /health returns OK', (done) => {
-  http.get('http://localhost:3008/health', (res) => {
+  http.get('http://localhost:4008/health', (res) => {
     expect(res.statusCode).toBe(200);
 
     let response = '';
