@@ -5,6 +5,10 @@
   },
   "dbServer": {
     "hostname": "",
-    "port": 0
+    "port": 0,
+    "dialect": "",
+    "database": "",
+    "username": "",
+    "password": ""
   }
 }
