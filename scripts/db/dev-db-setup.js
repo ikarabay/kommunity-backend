@@ -1,7 +1,15 @@
-import '../../src/models/sql';
-import { sequelize } from '../../src/clients/sequelize';
+/* eslint-disable no-console */
+import path from 'path';
+import Sequelize from 'sequelize';
+import DbClient, { importModels } from '$/lib/db-client';
 
-sequelize.sync({ force: true, match: /-development$/ }).then(() => {
+const config: AppConfig = require('$/config');
+
+const dbClient: Sequelize = DbClient(config.db);
+const modelsPath = path.join(__dirname, '../../src/models');
+importModels(modelsPath, dbClient);
+
+dbClient.sync({ force: true, match: /-development$/ }).then(() => {
   console.log('\n>>> DB TABLE SETUP IS COMPLETED\n');
   process.exit();
 }).catch((err) => {

@@ -1,18 +1,20 @@
 // we need this for es6 features:
 require('babel-core/register');
 
-const dbConfig = require('../../config').dbServer;
+const {
+  db: {
+    hostname, dialect, database, username, password,
+  },
+} = require('../../src/config');
 
-const dbSettings = {
-  username: dbConfig.username,
-  password: dbConfig.password,
-  database: dbConfig.database,
-  host: dbConfig.hostname,
-  dialect: dbConfig.dialect,
+const sequelizeCliConfig = {
+  [process.env.NODE_ENV]: {
+    database,
+    dialect,
+    host: hostname,
+    password,
+    username,
+  },
 };
 
-module.exports = {
-  development: dbSettings,
-  test: dbSettings,
-  production: dbSettings,
-};
+module.exports = sequelizeCliConfig;

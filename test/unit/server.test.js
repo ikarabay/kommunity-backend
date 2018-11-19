@@ -1,6 +1,6 @@
 import http from 'http';
 
-const server = require('$/server');
+const app = require('$/server');
 
 test('server returns 404', (done) => {
   http.get('http://localhost:4008/unknown-route', (res) => {
@@ -33,5 +33,5 @@ test('server - /health returns OK', (done) => {
 });
 
 afterAll((done) => {
-  server.close(done);
+  app.server.close(done);
 });
