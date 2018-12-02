@@ -60,13 +60,29 @@ export default gql`
     name: String
     tagline: String
     desc: String
+    location: String
+    tier: CommunityTier
+    visibility: CommunityType
     Users: [UserDetails]
   }
 
   type Query {
     getLoggedInUserDetails : LoggedInUserDetails
-    getUserDetailsById(id: ID!): UserDetails
+    getUserDetailsByUuid(uuid: ID!): UserDetails
+    getLoggedInUserCommunities: [Community]
+    getUserCommunitiesByUuid(uuid: ID!): [Community]
     searchCommunities(name: String!): [Community]
     findPopularCommunities: [Community]
+  }
+
+  type Mutation {
+    createCommunity(
+      name: String, 
+      tagline: String, 
+      desc: String, 
+      location: String, 
+      tier: CommunityTier, 
+      visibility: CommunityType,
+      ) : Community
   }
 `;

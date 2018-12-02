@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import * as http from 'http';
 import type { Server } from 'http';
+import get from 'lodash/get';
 import path from 'path';
 import Express from 'express';
 import Sequelize from 'sequelize';
@@ -10,12 +11,13 @@ import CookieParser from 'cookie-parser';
 import Morgan from 'morgan';
 import Passport from 'passport';
 import type { Sentry } from '@sentry/node';
+import helmet from 'helmet';
 import config from '$/config';
 import { getAllFiles } from './helpers';
 import DbClient, { importModels } from './db-client';
 
 import authenticationMiddleware from '$/middlewares/auth';
-import gqlTypeDefs from '$/graphql/type-defs';
+import gqlSchema from '$/graphql/schema';
 import gqlResolvers from '$/graphql/resolvers';
 
 import LocalPassportStrategy from '$/passport-auth/local-strategy';
@@ -43,7 +45,7 @@ export default class App {
   }
 
   init = (): void => {
-    const { port } = this.config.server;
+    const port = get(process, 'env.PORT') || this.config.server.port;
     this.initExpressApp();
     this.server = http.createServer(this.express);
     this.server.listen(port);
@@ -104,8 +106,15 @@ export default class App {
       this.express.use(sentry.Handlers.requestHandler());
     }
 
+    // SECURITY
+    this.express.use(helmet({
+      frameguard: {
+        action: 'deny',
+      },
+    }));
     // TODO update cors policy
     this.express.use(Cors());
+
     this.express.use(Morgan(morganConfig.format, morganConfig.options));
     this.express.use(Express.json());
     this.express.use(Express.urlencoded({ extended: false }));
@@ -167,7 +176,7 @@ export default class App {
   initGqlServer = (express: express$Application): void => {
     const that = this;
     const serverConf = {
-      typeDefs: gqlTypeDefs,
+      typeDefs: gqlSchema,
       resolvers: gqlResolvers(this),
       context: ({ req }) => req.user,
     };
