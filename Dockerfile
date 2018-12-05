@@ -1,5 +1,8 @@
 FROM node:8
 
+# Heroku overrides this on staging/production environment
+ENV NODE_ENV development
+
 # Create app directory
 WORKDIR /usr/app
 
