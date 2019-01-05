@@ -55,6 +55,7 @@ export default gql`
     location: String
     avatarUploadUuid: ID
     lastSeenAt: Date
+    CommunityUser: CommunityUser
   }
 
   type Community {
@@ -65,7 +66,14 @@ export default gql`
     location: String
     tier: CommunityTier
     visibility: CommunityType
-    Users: [UserDetails]
+    users: [UserDetails]
+  }
+
+  type CommunityUser {
+    communityUuid: String
+    userUuid: String
+    status: String
+    role: String
   }
 
   type PopularCommunity {
@@ -77,7 +85,29 @@ export default gql`
     userCount: Int
   }
 
+  type Message {
+    channelUUID: String
+    uuid: String
+    sender: String
+    text: String
+    ts: String
+  }
+
+  type Channel {
+    uuid: String
+    name: String
+    desc: String
+  }
+
+  type ChannelMessages {
+    nextCursor: Int
+    messages: [Message]
+  }
+
   type Query {
+    getChannels: [Channel]
+    getMessagesForChannel(channelUUID: String!, cursor: Int): ChannelMessages
+    getCommunityMembers(uuid: ID!): Community
     getLoggedInUserDetails: LoggedInUserDetails
     getUserDetailsByUuid(uuid: ID!): UserDetails
     getLoggedInUserCommunities: [Community]
@@ -105,5 +135,14 @@ export default gql`
       userAttributes: String
       location: String
     ): UserDetails
+    sendMessage(
+      channelUUID: String
+      sender: String,
+      text: String,
+    ) : Message
+  }
+
+  type Subscription {
+    messageSent(channelUUID: String!): Message
   }
 `;
