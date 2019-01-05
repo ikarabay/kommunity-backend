@@ -61,6 +61,14 @@ declare type AppModels = {
   UploadedItem: any
 };
 
+declare type AppMailer = {
+  sendMail: Function,
+}
+
+declare type AppClients = {
+  mailer: AppMailer,
+};
+
 declare class exExpress$Request extends express$Request {
   // Community flow-typed custom methods
   // body: mixed;
