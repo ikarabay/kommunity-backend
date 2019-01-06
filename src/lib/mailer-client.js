@@ -1,7 +1,7 @@
 import Queue from 'bull';
 import Mailer from 'nodemailer';
 
-let mailerQueue = undefined;
+let mailerQueue;
 const transporter = Mailer.createTransport({
   host: process.env.MAILER_HOST,
   port: 587,
