@@ -92,6 +92,7 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
 
   User.associate = (models) => {
     User.belongsToMany(models.Community, { as: 'communities', through: models.CommunityUser });
+    User.belongsToMany(models.Event, { as: 'events', through: models.UserEvent });
   };
 
   return User;

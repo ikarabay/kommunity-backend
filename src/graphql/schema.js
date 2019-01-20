@@ -3,6 +3,12 @@ import { gql } from 'apollo-server-express';
 export default gql`
   scalar Date
 
+  enum EventLocationType {
+    unplanned
+    online
+    address
+  }
+
   enum CommunityTier {
     free
     tier1
@@ -35,6 +41,33 @@ export default gql`
     post_attachment
   }
 
+  type Event {
+    uuid: ID!
+    communityUuid: ID!
+    imageUuid: ID
+    title: String
+    content: String
+    timeStart: Date
+    timeEnd: Date
+    timezone: String
+    location: EventLocationType
+    venueName: String
+    address1: String
+    address2: String
+    city: String
+    state: String
+    zip: Int
+    country: String
+    latitude: Float
+    longitude: Float
+
+    UserEvent: UserEvent
+  }
+
+  type UserEvent {
+    role: String
+  }
+
   type LoggedInUserDetails {
     uuid: ID!
     email: String!
@@ -45,6 +78,7 @@ export default gql`
     location: String
     avatarUploadUuid: ID
     lastSeenAt: Date
+    token: String
   }
 
   type UserDetails {
@@ -86,14 +120,15 @@ export default gql`
   }
 
   type Message {
-    channelUUID: String
+    channelUuid: String
     uuid: String
-    sender: String
+    sender: UserDetails
     text: String
-    ts: String
+    createdAt: Date
   }
 
   type Channel {
+    communityUuid: String
     uuid: String
     name: String
     desc: String
@@ -105,11 +140,13 @@ export default gql`
   }
 
   type Query {
-    getChannels: [Channel]
+    getChannels(communityUUID: String!): [Channel]
     getMessagesForChannel(channelUUID: String!, cursor: Int): ChannelMessages
+    getCommunityEvents(communityUuid: ID!): [Event]
     getCommunityMembers(uuid: ID!): Community
     getLoggedInUserDetails: LoggedInUserDetails
     getUserDetailsByUuid(uuid: ID!): UserDetails
+    getUserEvents(userUuid: ID!): [Event]
     getLoggedInUserCommunities: [Community]
     getUserCommunitiesByUuid(uuid: ID!): [Community]
     searchCommunities(name: String!): [Community]
@@ -137,9 +174,17 @@ export default gql`
     ): UserDetails
     sendMessage(
       channelUUID: String
-      sender: String,
+      senderUUID: String,
       text: String,
-    ) : Message
+    ): Message
+
+    login(email: String!, password: String!) : LoggedInUserDetails!
+    logout: Boolean
+    signup(
+      email: String!,
+      password: String!,
+      captchaResponse: String!
+    ): String
   }
 
   type Subscription {
