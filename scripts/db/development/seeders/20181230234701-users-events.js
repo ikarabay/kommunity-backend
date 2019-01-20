@@ -31,7 +31,7 @@ const items = [
 
 module.exports = {
   up: (queryInterface) => {
-    return queryInterface.bulkInsert('events', items, {});
+    return queryInterface.bulkInsert('user_events', items, {});
   },
   down: () => {},
 };

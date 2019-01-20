@@ -56,14 +56,14 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
         isDate: true,
       },
     },
-    timeZone: {
+    timezone: {
       type: dataTypes.STRING(30),
-      field: 'time_zone',
+      field: 'timezone',
     },
-    location: {
+    locationType: {
       type: dataTypes.ENUM('unplanned', 'online', 'address'),
       allowNull: false,
-      field: 'location',
+      field: 'location_type',
       validate: {
         isIn: [['unplanned', 'online', 'address']],
       },
@@ -131,7 +131,7 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
 
   Event.associate = (models) => {
     Event.belongsTo(models.Community);
-    Event.belongsToMany(models.User, { through: models.UserEvent });
+    Event.belongsToMany(models.User, { as: 'user', through: models.UserEvent });
   };
 
   return Event;
