@@ -8,15 +8,21 @@ services:
       - "4000:4000"
     depends_on:
       - db
+    links:
+      - redis
     volumes:
       - ./:/usr/app
     environment:
       DATABASE_URL: postgres://postgres:postgres@db:5432/community-development
+      REDIS_URL: 'redis://kommunitybackend_redis'
+      MAILER_HOST: smtp.ethereal.email
+      MAILER_USER: bulwuvzftxco64rt@ethereal.email
+      MAILER_PASS: AUqJ18jyPz4XCNTtt8
   db:
     container_name: kommunitybackend_db
     image: postgres:latest
     ports:
-    - "5432:5432"
+      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -26,7 +32,12 @@ services:
     depends_on:
       - db
     ports:
-    - "6432:80"
+      - "6432:80"
     environment:
       PGADMIN_DEFAULT_EMAIL: dev@selmankahya.com
       PGADMIN_DEFAULT_PASSWORD: selman
+  redis:
+    image: redis
+    container_name: kommunitybackend_redis
+    expose:
+      - "6379"

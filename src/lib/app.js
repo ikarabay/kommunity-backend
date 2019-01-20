@@ -17,6 +17,7 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import helmet from 'helmet';
 import config from '$/config';
 import DbClient, { importModels } from './db-client';
+import { sendMail } from './mailer-client';
 
 import gqlSchema from '$/graphql/schema';
 import gqlResolvers from '$/graphql/resolvers';
@@ -31,12 +32,18 @@ export default class App {
   express: express$Application;
   sequelize: Sequelize;
   models: AppModels;
-
+  clients: AppClients;
   constructor() {
     this.config = config;
 
     const srcPath = path.join(path.resolve(), 'src');
     this.modelsPath = path.join(srcPath, 'models');
+
+    this.clients = {
+      mailer: {
+        sendMail,
+      },
+    };
 
     // initialize the app
     this.init();
