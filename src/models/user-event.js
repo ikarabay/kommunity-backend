@@ -33,9 +33,6 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
     freezeTableName: true,
     tableName: 'user_events',
   });
-  UserEvent.associate = (models) => {
-    UserEvent.belongsTo(models.Event);
-  };
 
   return UserEvent;
 };

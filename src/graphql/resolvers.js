@@ -39,6 +39,25 @@ export default (app: App) => {
         nextCursor: cursor + 1,
       };
     },
+    getCommunityEvents: (parent: {}, args: { communityUuid: uuid }) => {
+      // returns community events for given community id
+      return app.models.Event.findAll({
+        where: { communityUuid: args.communityUuid },
+      });
+    },
+    getUserEvents: async (parent: {}, args: { userUuid: uuid }) => {
+      // returns all events for given user uuid
+      const user = await app.models.User.findOne({
+        include: [
+          {
+            as: 'events',
+            model: app.models.Event,
+          },
+        ],
+        where: { uuid: args.userUuid },
+      });
+      return user.get('events');
+    },
     getCommunityMembers: (parent: {}, args: { uuid: uuid }) => {
       // returns community members for given community id
       return app.models.Community.findOne({
