@@ -1,4 +1,4 @@
-import { type Options as SequelizeOptions } from "sequelize";
+import { type Options as SequelizeOptions } from 'sequelize';
 
 declare module 'config' {
   declare module.exports: any;
@@ -54,6 +54,8 @@ declare type AppUser = {
 
 declare type AppModels = {
   User: any,
+  Event: any,
+  UserEvent: any,
   Community: any,
   CommunityUser: any,
   ConversationCategory: any,

@@ -56,7 +56,6 @@ export default (app: App) => {
         ],
         where: { uuid: args.userUuid },
       });
-      console.log(JSON.stringify(user));
       return user.get('events');
     },
     getCommunityMembers: (parent: {}, args: { uuid: uuid }) => {
