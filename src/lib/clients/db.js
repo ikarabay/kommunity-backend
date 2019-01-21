@@ -1,6 +1,6 @@
 import path from 'path';
 import Sequelize from 'sequelize';
-import { getAllFiles } from './helpers';
+import { getAllFiles } from '../helpers';
 
 export default (connectionUrl: string): Sequelize => {
   return new Sequelize(connectionUrl);

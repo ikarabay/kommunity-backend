@@ -9,7 +9,7 @@ const mockModels = {
 
 };
 
-jest.mock('../../src/lib/db-client', () => ({
+jest.mock('../../src/lib/clients/db', () => ({
   __esModule: true, // this property makes it work
   default: () => mockSequelize,
   importModels: () => mockModels,
