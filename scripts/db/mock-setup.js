@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import path from 'path';
 import Sequelize from 'sequelize';
-import DbClient, { importModels } from '$/lib/db-client';
+import DbClient, { importModels } from '$/lib/clients/db';
 
 if (['development', 'staging'].indexOf(process.env.NODE_ENV) > -1) {
   const dbClient: Sequelize = DbClient(process.env.DATABASE_URL);

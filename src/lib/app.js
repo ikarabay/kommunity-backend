@@ -16,8 +16,8 @@ import type { Sentry } from '@sentry/node';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import helmet from 'helmet';
 import config from '$/config';
-import DbClient, { importModels } from './db-client';
-import { sendMail } from './mailer-client';
+import DbClient, { importModels } from './clients/db';
+import MailerClient from './clients/mailer';
 
 import gqlSchema from '$/graphql/schema';
 import gqlResolvers from '$/graphql/resolvers';
@@ -40,9 +40,7 @@ export default class App {
     this.modelsPath = path.join(srcPath, 'models');
 
     this.clients = {
-      mailer: {
-        sendMail,
-      },
+      mailer: new MailerClient(),
     };
 
     // initialize the app
