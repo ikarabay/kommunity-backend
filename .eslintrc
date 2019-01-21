@@ -8,6 +8,7 @@
   "rules": {
     "lines-between-class-members": 0,
     "flowtype/no-types-missing-file-annotation": 0,
+    "flowtype/unclear-type": 0,
     "max-len": [2, {"code": 120, "ignoreUrls": true}],
     "arrow-body-style": 0,
     "import/no-unresolved": 0,

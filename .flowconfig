@@ -10,6 +10,7 @@
 
 [lints]
 all=error
+unclear-type=off
 
 [options]
 all=true
@@ -18,7 +19,6 @@ module.ignore_non_literal_requires=true
 
 [strict]
 nonstrict-import
-unclear-type
 unsafe-getters-setters
 untyped-import
 untyped-type-import

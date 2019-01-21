@@ -1,19 +1,32 @@
 import sgMail from '@sendgrid/mail';
 import Queue from '$/lib/queue';
 
+type MailOptionsType = {
+  from: string,
+  to: string,
+  subject: string,
+  text: string,
+  html: string,
+};
+
 class MailerClient {
+  queue = null;
+
   constructor() {
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    this.queue = new Queue('MailerQueue', this.processRequest);
+    const apiKey = process.env.SENDGRID_API_KEY || '';
+    if (apiKey) {
+      sgMail.setApiKey(apiKey);
+      this.queue = new Queue('MailerQueue', this.processRequest);
+    }
   }
 
-  processRequest = async (mailOptions, done) => {
+  processRequest = async (options: MailOptionsType, done: (any) => {}) => {
     const msg = {
-      to: 'selmanhalid@gmail.com',
-      from: 'hi@kommunity.app',
-      subject: 'testing',
-      text: 'and easy to do anywhere, even with Node.js',
-      html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+      to: options.to,
+      from: options.from,
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
     };
     try {
       const response = await sgMail.send(msg);
@@ -26,8 +39,10 @@ class MailerClient {
     }
   }
 
-  sendMail = (mailOptions: Mailer.SendMailOptions) => {
-    return this.queue.add(mailOptions);
+  sendMail = (options: MailOptionsType) => {
+    if (this.queue) {
+      this.queue.add(options);
+    }
   }
 }
 

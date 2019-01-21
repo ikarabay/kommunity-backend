@@ -3,9 +3,12 @@ import BullQueue from 'bull';
 
 // Queue structure for general purposes
 class Queue {
+  queue = null;
+  processFn = null;
+
   constructor(
     queueName: string,
-    processFn: (job: string, done: () => {}) => {},
+    processFn: (job: any, done: () => {}) => {},
   ) {
     this.queue = new BullQueue(queueName, process.env.REDIS_URL);
     this.queue.process(this.processQueueJob);
@@ -13,11 +16,15 @@ class Queue {
   }
 
   processQueueJob = (job: any, done: () => {}) => {
-    this.processFn(job.data, done);
+    if (this.processFn) {
+      this.processFn(job.data, done);
+    }
   }
 
   add = (data: any) => {
-    return this.queue.add(data);
+    if (this.queue) {
+      this.queue.add(data);
+    }
   }
 }
 
