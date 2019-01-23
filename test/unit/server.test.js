@@ -39,5 +39,5 @@ test('server - /health returns OK', (done) => {
 });
 
 afterAll((done) => {
-  app.server.close(done);
+  app.httpServer.close(done);
 });

@@ -13,8 +13,8 @@ services:
       - ./:/usr/app
     environment:
       DATABASE_URL: postgres://postgres:postgres@db:5432/community-development
-      REDIS_URL: 'redis://kommunitybackend_redis'
-      SENDGRID_API_KEY: 'GET_YOURSELF_A_KEY_FROM_SENDGRID'
+      REDIS_URL: redis://kommunitybackend_redis
+      SENDGRID_API_KEY: GET_YOURSELF_A_KEY_FROM_SENDGRID
   db:
     container_name: kommunitybackend_db
     image: postgres:latest

@@ -1,13 +1,8 @@
 {
   "server": {
-    "hostname": "localhost",
     "viewEngine": "hbs",
     "viewFolderPath": "views",
     "publicFolderPath": "public"
-  },
-  "gqlServer": {
-    "port": 4000,
-    "rootPath": "/gql"
   },
   "db": {
     "dialect": "postgres",

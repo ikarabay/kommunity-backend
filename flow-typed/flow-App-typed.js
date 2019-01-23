@@ -29,6 +29,7 @@ declare type AppServerSecretsConfig = {
   jwt: string
 };
 declare type AppServerConfig = {
+  allowedCorsOrigins: string[],
   port: number | string,
   hostname: string,
   secrets: AppServerSecretsConfig,
