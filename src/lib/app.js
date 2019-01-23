@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-import * as http from 'http';
 import type { Server } from 'http';
 import get from 'lodash/get';
 import path from 'path';
@@ -9,12 +8,13 @@ import Sequelize from 'sequelize';
 import { ApolloServer } from 'apollo-server-express';
 import Cors from 'cors';
 import CookieParser from 'cookie-parser';
+import { getUserFromToken } from '$/auth/lib';
 import { makeExecutableSchema } from 'graphql-tools';
 import Morgan from 'morgan';
-import Passport from 'passport';
 import type { Sentry } from '@sentry/node';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import helmet from 'helmet';
+
 import config from '$/config';
 import DbClient, { importModels } from './clients/db';
 import MailerClient from './clients/mailer';
@@ -22,17 +22,15 @@ import MailerClient from './clients/mailer';
 import gqlSchema from '$/graphql/schema';
 import gqlResolvers from '$/graphql/resolvers';
 
-import LocalPassportStrategy from '$/passport-auth/local-strategy';
-import JwtPassportStrategy from '$/passport-auth/jwt-strategy';
-
 export default class App {
-  server: Server;
+  httpServer: ?Server;
   modelsPath: string;
   config: AppConfig;
   express: express$Application;
   sequelize: Sequelize;
   models: AppModels;
   clients: AppClients;
+
   constructor() {
     this.config = config;
 
@@ -44,43 +42,8 @@ export default class App {
     };
 
     // initialize the app
-    this.init();
-  }
-
-  init = (): void => {
-    const port = get(process, 'env.PORT') || this.config.server.port;
     this.initExpressApp();
-    this.server = http.createServer(this.express);
-    this.server.listen(port);
-
-    /* istanbul ignore next */
-    this.server.on('error', (error) => {
-      if (error.syscall !== 'listen') {
-        throw error;
-      }
-      const bind = typeof port === 'string'
-        ? `Pipe ${port}`
-        : `Port ${port}`;
-
-      // handle specific listen errors with friendly messages
-      switch (error.code) {
-        case 'EACCES':
-          console.log(`${bind} requires elevated privileges`);
-          process.exit(1);
-          break;
-        case 'EADDRINUSE':
-          console.log(`${bind} is already in use`);
-          process.exit(1);
-          break;
-        default:
-          throw error;
-      }
-    });
-
-    this.server.on('listening', () => {
-      console.log(`EXPRESS 🎢  Server is ready at http://localhost:${port}`);
-    });
-  };
+  }
 
   initExpressApp = (): void => {
     // eslint-disable-next-line
@@ -116,7 +79,7 @@ export default class App {
       },
     }));
     // TODO update cors policy
-    this.express.use(Cors());
+    this.express.use(Cors(this.getCorsOptions()));
 
     this.express.use(Morgan(morganConfig.format, morganConfig.options));
     this.express.use(Express.json());
@@ -126,9 +89,8 @@ export default class App {
 
     this.initDbClient();
     this.initModels();
-    this.initPassport();
     this.initRoutes();
-    this.initGqlServer(this.express);
+    this.startServer();
 
     // eslint-disable-next-line
     this.express.use((req: exExpress$Request, res: express$Response, next: express$NextFunction) => {
@@ -162,12 +124,6 @@ export default class App {
     this.models = importModels(this.modelsPath, this.sequelize);
   };
 
-  initPassport = (): void => {
-    this.express.use(Passport.initialize());
-    Passport.use(LocalPassportStrategy(this.models));
-    Passport.use(JwtPassportStrategy());
-  };
-
   initRoutes = (): void => {
     const router: express$Router = Express.Router();
     router.get('/health', (req: exExpress$Request, res: express$Response) => {
@@ -176,56 +132,43 @@ export default class App {
     this.express.use('/', router);
   };
 
-  initGqlServer = (express: express$Application): void => {
-    const that = this;
+  startServer = (): void => {
+    // APOLLO SERVER
     const schemaConf = {
-      context: ({ req }) => req.user,
+      context: async ({ req }) => ({ user: await getUserFromToken(req.cookies.authorization) }),
       resolvers: gqlResolvers(this),
       typeDefs: gqlSchema,
     };
     const schema = makeExecutableSchema(schemaConf);
-
-    /* TODO: authenticate users in the resolvers
-    import authenticationMiddleware from '$/middlewares/auth';
-    import { generateTokenForUser } from '$/passport-auth/lib';
-
-    express.use((req: exExpress$Request, res: express$Response, next: express$NextFunction) => {
-      if (req.path === that.config.gqlServer.rootPath) {
-        return authenticationMiddleware(req, res, next);
-      }
-      // fakeToken for only gqlPlayground context.
-      if (process.env.NODE_ENV !== 'production' && req.path === that.config.gqlServer.playgroundPath) {
-        const fakeToken = generateTokenForUser({
-          uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
-        });
-        req.headers.authorization = fakeToken;
-        return authenticationMiddleware(req, res, next);
-      }
-      return next();
+    const apolloServer = new ApolloServer(schemaConf);
+    apolloServer.applyMiddleware({
+      app: this.express,
+      // required for auth cookies
+      cors: this.getCorsOptions(),
     });
-     */
 
-    const server = new ApolloServer(schemaConf);
-    server.applyMiddleware({ app: express, path: this.config.gqlServer.rootPath });
-
-    if (process.env.NODE_ENV !== 'production') {
-      const playgroundServer = new ApolloServer(schemaConf);
-      playgroundServer.applyMiddleware({ app: express, path: this.config.gqlServer.playgroundPath });
-    }
-
-    express.listen({ port: this.config.gqlServer.port }, () => {
-      // eslint-disable-next-line no-new
-      new SubscriptionServer({
+    // EXPRESS + WebSocket Server
+    const port = get(process, 'env.PORT') || this.config.server.port;
+    // listen() returns http server express creates internally
+    this.httpServer = this.express.listen({ port }, () => {
+      SubscriptionServer.create({
         execute,
-        subscribe,
         schema,
+        subscribe,
         // TODO use onConnect to validate user
       }, {
-        server: this.server,
-        path: '/graphql-subscriptions',
+        server: this.httpServer,
       });
-      console.log(`GRAPHQL 🚀  Server ready at http://localhost:${that.config.gqlServer.port}${that.config.gqlServer.rootPath}`);
-      console.log(`GRAPHQL ✨  Playground server ready at http://localhost:${that.config.gqlServer.port}${that.config.gqlServer.playgroundPath}`);
+      console.log(`EXPRESS 🎢  Server is ready at http://localhost:${port}`);
+      console.log(`GRAPHQL 🚀  Server ready at http://localhost:${port}/graphql`);
     });
+  }
+
+  getCorsOptions = () => {
+    return {
+      origin: this.config.server.allowedCorsOrigins,
+      // required for auth cookies
+      credentials: true,
+    };
   }
 }

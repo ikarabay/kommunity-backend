@@ -6,12 +6,13 @@ import md5 from 'md5';
 import axios from 'axios';
 import validator from 'validator';
 
-import { generateTokenForUser } from '$/passport-auth/lib';
+import { generateTokenForUser } from '$/auth/lib';
 import { RECAPTCHA_API_KEY } from '$/constants';
 
 export const pubsub = new PubSub();
 
 const COMMUNITY_VISIBILITY_PUBLIC = 'public';
+const AUTH_TOKEN_EXPIRE = 1000 * 60 * 60 * 24 * 7; // 7 days
 const MESSAGES_PAGE_SIZE = 20;
 
 export default (app: App) => {
@@ -69,9 +70,9 @@ export default (app: App) => {
         where: { uuid: args.uuid },
       });
     },
-    getLoggedInUserDetails: (parent: {}, args: {}, user: AppUser) => {
+    getLoggedInUserDetails: (parent: {}, args: {}, { user }: {user: AppUser}) => {
       return app.models.User.findOne({
-        include: [{ model: app.models.Community }],
+        include: [{ as: 'communities', model: app.models.Community }],
         where: { uuid: user.uuid },
       });
     },
@@ -187,7 +188,7 @@ export default (app: App) => {
     login: async (parent: {}, args: {
       email: string,
       password: string
-    }) => {
+    }, { res }: { res: express$Response }) => {
       // check if there is a user with that email
       const user = await app.models.User.findOne({
         where: { email: args.email },
@@ -207,7 +208,9 @@ export default (app: App) => {
       // all good, generate the jwt token
       const token = generateTokenForUser(userObj);
 
-      return { ...userObj, token };
+      // TODO use signed param below?
+      res.cookie('authorization', token, { maxAge: AUTH_TOKEN_EXPIRE, httpOnly: true });
+      return true;
     },
     logout: () => true,
     signup: async (parent: {}, args: {
@@ -243,8 +246,10 @@ export default (app: App) => {
         email: args.email,
         passwordHash,
       });
+      const userObj = user.get();
 
-      return generateTokenForUser(user.get());
+      // all good, generate the jwt token
+      return generateTokenForUser(userObj);
     },
     createUser: (
       parent: {},

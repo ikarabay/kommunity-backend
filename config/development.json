@@ -1,5 +1,6 @@
 {
   "server": {
+    "allowedCorsOrigins": ["http://localhost:3000"],
     "port": 3008,
     "secrets": {
       "jwt": "development-jwt-secret"
@@ -8,8 +9,5 @@
       "format": "dev",
       "options": {}
     }
-  },
-  "gqlServer": {
-    "playgroundPath": "/gql-dev"
   }
 }

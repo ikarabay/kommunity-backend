@@ -1,6 +1,6 @@
 {
   "server": {
-    "port": 3008,
+    "allowedCorsOrigins": ["https://stagingkommunity.app"],
     "secrets": {
       "jwt": "staging-jwt-secret"
     },
@@ -15,8 +15,5 @@
       "format": "dev",
       "options": {}
     }
-  },
-  "gqlServer": {
-    "playgroundPath": "/gql-dev"
   }
 }

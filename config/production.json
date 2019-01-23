@@ -1,5 +1,6 @@
 {
   "server": {
+    "allowedCorsOrigins": ["https://kommunity.app", "https://www.kommunity.app"],
     "secrets": {
       "jwt": "production-jwt-secret"
     },

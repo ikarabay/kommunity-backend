@@ -178,13 +178,13 @@ export default gql`
       text: String,
     ): Message
 
-    login(email: String!, password: String!) : LoggedInUserDetails!
+    login(email: String!, password: String!): String!
     logout: Boolean
     signup(
       email: String!,
       password: String!,
       captchaResponse: String!
-    ): String
+    ): String!
   }
 
   type Subscription {

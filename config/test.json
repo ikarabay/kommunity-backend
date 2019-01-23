@@ -8,8 +8,5 @@
       "format": "dev",
       "options": {}
     }
-  },
-  "gqlServer": {
-    "playgroundPath": "/gql-dev"
   }
 }
