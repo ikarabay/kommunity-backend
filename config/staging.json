@@ -1,6 +1,6 @@
 {
   "server": {
-    "allowedCorsOrigins": ["https://stagingkommunity.app"],
+    "allowedCorsOrigins": ["https://staging.kommunity.app"],
     "secrets": {
       "jwt": "staging-jwt-secret"
     },
