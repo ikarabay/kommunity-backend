@@ -147,7 +147,15 @@ export default class App {
           }
         }
         return {
-          setCookie: (name, value, opts) => res.cookie(name, value, opts),
+          setCookie: (name, value, opts: Object) => {
+            const options = { ...opts };
+            if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
+              options.secure = true;
+              options.domain = 'kommunity.app';
+              options.sameSite = true;
+            }
+            res.cookie(name, value, options);
+          },
           removeCookie: name => res.clearCookie(name),
           user,
         };
