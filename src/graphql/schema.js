@@ -78,7 +78,6 @@ export default gql`
     location: String
     avatarUploadUuid: ID
     lastSeenAt: Date
-    token: String
   }
 
   type UserDetails {
@@ -178,13 +177,13 @@ export default gql`
       text: String,
     ): Message
 
-    login(email: String!, password: String!): String!
+    login(email: String!, password: String!): Boolean
     logout: Boolean
     signup(
       email: String!,
       password: String!,
       captchaResponse: String!
-    ): String!
+    ): Boolean
   }
 
   type Subscription {

@@ -129,14 +129,16 @@ export default (app: App) => {
         order: [[app.sequelize.literal('"userCount"'), 'DESC']],
       }).map(data => data.toJSON());
     },
-    searchCommunities: (parent: {}, args: { name: string }) => app.models.Community.findAll({
-      include: [{ model: app.models.User }],
-      where: {
-        name: {
-          $ilike: `%${args.name}%`,
+    searchCommunities: (parent: {}, args: { name: string }) => {
+      return app.models.Community.findAll({
+        include: [{ model: app.models.User }],
+        where: {
+          name: {
+            $ilike: `%${args.name}%`,
+          },
         },
-      },
-    }),
+      });
+    },
     searchUsers: (parent: {}, args: { queryText: string }) => {
       const queryTextArray = args.queryText.split(' ');
       const orQuery = queryTextArray.map((text) => {
@@ -188,7 +190,7 @@ export default (app: App) => {
     login: async (parent: {}, args: {
       email: string,
       password: string
-    }, { res }: { res: express$Response }) => {
+    }, { setCookie }: { setCookie: (string, string, Object) => void }) => {
       // check if there is a user with that email
       const user = await app.models.User.findOne({
         where: { email: args.email },
@@ -209,15 +211,18 @@ export default (app: App) => {
       const token = generateTokenForUser(userObj);
 
       // TODO use signed param below?
-      res.cookie('authorization', token, { maxAge: AUTH_TOKEN_EXPIRE, httpOnly: true });
+      setCookie('authorization', token, { maxAge: AUTH_TOKEN_EXPIRE, httpOnly: true });
       return true;
     },
-    logout: () => true,
+    logout: async (parent: {}, args: {}, { removeCookie }: { setCookie: (string) => void }) => {
+      removeCookie('authorization');
+      return true;
+    },
     signup: async (parent: {}, args: {
       email: string,
       password: string,
       captchaResponse: string
-    }) => {
+    }, { setCookie }: { setCookie: (string, string, Object) => void }) => {
       // check captcha result before all
       const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_API_KEY}&response=${args.captchaResponse}`;
       const captchaResult = await axios(verificationUrl).then(response => response.data.success);
@@ -249,7 +254,11 @@ export default (app: App) => {
       const userObj = user.get();
 
       // all good, generate the jwt token
-      return generateTokenForUser(userObj);
+      const token = generateTokenForUser(userObj);
+
+      // TODO use signed param below?
+      setCookie('authorization', token, { maxAge: AUTH_TOKEN_EXPIRE, httpOnly: true });
+      return true;
     },
     createUser: (
       parent: {},

@@ -6,6 +6,7 @@ import { execute, subscribe } from 'graphql';
 import Express from 'express';
 import Sequelize from 'sequelize';
 import { ApolloServer } from 'apollo-server-express';
+import { AuthenticationError } from 'apollo-server';
 import Cors from 'cors';
 import CookieParser from 'cookie-parser';
 import { getUserFromToken } from '$/auth/lib';
@@ -135,7 +136,22 @@ export default class App {
   startServer = (): void => {
     // APOLLO SERVER
     const schemaConf = {
-      context: async ({ req }) => ({ user: await getUserFromToken(req.cookies.authorization) }),
+      context: async ({ req, res }) => {
+        const token = req.cookies.authorization;
+        let user;
+        if (token) {
+          try {
+            user = await getUserFromToken(token);
+          } catch (error) {
+            throw new AuthenticationError();
+          }
+        }
+        return {
+          setCookie: (name, value, opts) => res.cookie(name, value, opts),
+          removeCookie: name => res.clearCookie(name),
+          user,
+        };
+      },
       resolvers: gqlResolvers(this),
       typeDefs: gqlSchema,
     };
