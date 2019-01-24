@@ -134,6 +134,12 @@ export default class App {
   };
 
   startServer = (): void => {
+    const defaultCookieOpts = {};
+    if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
+      defaultCookieOpts.secure = true;
+      defaultCookieOpts.domain = 'kommunity.app';
+      defaultCookieOpts.sameSite = true;
+    }
     // APOLLO SERVER
     const schemaConf = {
       context: async ({ req, res }) => {
@@ -147,16 +153,8 @@ export default class App {
           }
         }
         return {
-          setCookie: (name, value, opts: Object) => {
-            const options = { ...opts };
-            if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
-              options.secure = true;
-              options.domain = 'kommunity.app';
-              options.sameSite = true;
-            }
-            res.cookie(name, value, options);
-          },
-          removeCookie: name => res.clearCookie(name),
+          setCookie: (name, value, opts: Object) => res.cookie(name, value, { ...opts, ...defaultCookieOpts }),
+          removeCookie: (name, opts: Object) => res.clearCookie(name, { ...opts, ...defaultCookieOpts }),
           user,
         };
       },
