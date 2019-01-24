@@ -214,7 +214,7 @@ export default (app: App) => {
       setCookie('authorization', token, { maxAge: AUTH_TOKEN_EXPIRE, httpOnly: true });
       return true;
     },
-    logout: async (parent: {}, args: {}, { removeCookie }: { setCookie: (string) => void }) => {
+    logout: async (parent: {}, args: {}, { removeCookie }: { removeCookie: (string) => void }) => {
       removeCookie('authorization');
       return true;
     },
