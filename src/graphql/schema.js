@@ -176,7 +176,7 @@ export default gql`
       captchaResponse: String!
     ): Boolean
 
-    subscribeToMailList(email: String!): Boolean
+    subscribeToMailList(email: String!, listId: String!): Boolean
   }
 
   type Subscription {

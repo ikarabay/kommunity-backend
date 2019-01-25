@@ -23,10 +23,6 @@ const EMAIL_DETAILS = {
   },
 };
 
-const EMAIL_LIST_IDS = {
-  BETA_SIGNUP: '6746304',
-};
-
 export default (app: App) => {
   const Query = {
     getChannels: (parent: {}, args: {communityUUID: string}) => {
@@ -283,8 +279,9 @@ export default (app: App) => {
     },
     subscribeToMailList: async (parent: {}, args: {
       email: string,
+      listId: string,
     }, { clients }: { clients: AppClients }) => {
-      clients.mailer.addRecipient(args.email, EMAIL_LIST_IDS.BETA_SIGNUP);
+      clients.mailer.addRecipient(args.email, args.listId);
       return true;
     },
     // CHAT
