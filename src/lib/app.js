@@ -12,7 +12,7 @@ import CookieParser from 'cookie-parser';
 import { getUserFromToken } from '$/auth/lib';
 import { makeExecutableSchema } from 'graphql-tools';
 import Morgan from 'morgan';
-import type { Sentry } from '@sentry/node';
+import * as Sentry from '@sentry/node';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import helmet from 'helmet';
 
@@ -48,7 +48,6 @@ export default class App {
 
   initExpressApp = (): void => {
     // eslint-disable-next-line
-    const sentry: Sentry = require('@sentry/node');
     const {
       publicFolderPath, viewEngine, viewFolderPath, sentry: sentryConfig, morgan: morganConfig,
     } = this.config.server;
@@ -62,7 +61,21 @@ export default class App {
         dsn, debug, environment, sampleRate, attachStacktrace,
       } = sentryConfig;
       // Error Handling
-      sentry.init({
+      Sentry.init({
+        beforeSend: (event) => {
+          // logging errors on non-prod envs for debugging purposes
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('\n---------------------------------');
+            const trace = get(event, 'exception.values[0].stacktrace.frames', [])
+              .map(frame => `${frame.filename}:${frame.lineno}:${frame.colno}`)
+              .reverse()
+              .reduce((acc, str) => `${acc}\n${str}`, '');
+            console.error('ERROR OCCURED: ', event.message);
+            console.error('\nStack Trace:\n-----------', trace);
+            console.error('---------------------------------\n');
+          }
+          return event;
+        },
         dsn,
         debug,
         environment,
@@ -70,7 +83,7 @@ export default class App {
         attachStacktrace,
       });
       // The request handler must be the first middleware on the app
-      this.express.use(sentry.Handlers.requestHandler());
+      this.express.use(Sentry.Handlers.requestHandler());
     }
 
     // SECURITY
@@ -101,7 +114,7 @@ export default class App {
 
     if (sentryConfig) {
       // The error handler must be before any other error middleware
-      this.express.use(sentry.Handlers.errorHandler());
+      this.express.use(Sentry.Handlers.errorHandler());
     }
 
     // Optional fallthrough error handler
@@ -109,7 +122,7 @@ export default class App {
     this.express.use((err: Error, req: exExpress$Request, res: express$Response, next: express$NextFunction) => {
       res.statusCode = 500;
       // eslint-disable-next-line no-underscore-dangle
-      res.json({ message: 'internal_error', eventId: sentry.getCurrentHub()._lastEventId });
+      res.json({ message: 'internal_error', eventId: Sentry.getCurrentHub()._lastEventId });
     });
   };
 
@@ -153,6 +166,7 @@ export default class App {
           }
         }
         return {
+          clients: this.clients,
           setCookie: (name, value, opts: Object) => res.cookie(name, value, { ...opts, ...defaultCookieOpts }),
           removeCookie: (name, opts: Object) => res.clearCookie(name, { ...opts, ...defaultCookieOpts }),
           user,

@@ -67,6 +67,7 @@ declare type AppModels = {
 };
 
 declare type AppMailer = {
+  addRecipient: Function,
   sendMail: Function,
 }
 

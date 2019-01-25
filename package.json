@@ -37,6 +37,7 @@
     "cover"
   ],
   "dependencies": {
+    "@sendgrid/client": "^6.3.0",
     "@sendgrid/mail": "^6.3.1",
     "@sentry/node": "^4.1.1",
     "apollo-server": "^2.3.1",

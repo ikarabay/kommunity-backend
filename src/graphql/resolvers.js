@@ -15,6 +15,18 @@ const COMMUNITY_VISIBILITY_PUBLIC = 'public';
 const AUTH_TOKEN_EXPIRE = 1000 * 60 * 60 * 24 * 7; // 7 days
 const MESSAGES_PAGE_SIZE = 20;
 
+const EMAIL_DETAILS = {
+  SIGNUP_CONFIRMATION: {
+    // TODO update
+    from: 'hi@kommunity.app',
+    templateId: 'd-12933ab7b8bd49fa93f487fd949fead5',
+  },
+};
+
+const EMAIL_LIST_IDS = {
+  BETA_SIGNUP: '6746304',
+};
+
 export default (app: App) => {
   const Query = {
     getChannels: (parent: {}, args: {communityUUID: string}) => {
@@ -222,7 +234,7 @@ export default (app: App) => {
       email: string,
       password: string,
       captchaResponse: string
-    }, { setCookie }: { setCookie: (string, string, Object) => void }) => {
+    }, { setCookie, clients }: { setCookie: (string, string, Object) => void, clients: AppClients }) => {
       // check captcha result before all
       const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_API_KEY}&response=${args.captchaResponse}`;
       const captchaResult = await axios(verificationUrl).then(response => response.data.success);
@@ -253,6 +265,15 @@ export default (app: App) => {
       });
       const userObj = user.get();
 
+      // Sending async confirmation email
+      const { from, templateId } = EMAIL_DETAILS.SIGNUP_CONFIRMATION;
+      clients.mailer.sendMail({
+        to: args.email,
+        from,
+        templateId,
+        tags: {},
+      });
+
       // all good, generate the jwt token
       const token = generateTokenForUser(userObj);
 
@@ -260,31 +281,11 @@ export default (app: App) => {
       setCookie('authorization', token, { maxAge: AUTH_TOKEN_EXPIRE, httpOnly: true });
       return true;
     },
-    createUser: (
-      parent: {},
-      args: {
-        email: string,
-        password: string,
-        username: string,
-        firstName: string,
-        lastName: string,
-        userAttributes: string,
-        location: string,
-      },
-    ) => {
-      const passwordHash = md5(args.password);
-      return app.models.User.create({
-        uuid: uuid(),
-        email: args.email,
-        passwordHash,
-        username: args.username,
-        firstName: args.firstName,
-        lastName: args.lastName,
-        userAttributes: args.userAttributes,
-        location: args.location,
-        // avatar uuid
-        avatarUploadUuid: uuid(),
-      });
+    subscribeToMailList: async (parent: {}, args: {
+      email: string,
+    }, { clients }: { clients: AppClients }) => {
+      clients.mailer.addRecipient(args.email, EMAIL_LIST_IDS.BETA_SIGNUP);
+      return true;
     },
     // CHAT
     sendMessage: (parent: {}, args: {

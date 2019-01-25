@@ -162,15 +162,6 @@ export default gql`
       tier: CommunityTier
       visibility: CommunityType
     ): Community
-    createUser(
-      email: String
-      password: String
-      username: String
-      firstName: String
-      lastName: String
-      userAttributes: String
-      location: String
-    ): UserDetails
     sendMessage(
       channelUUID: String
       senderUUID: String,
@@ -184,6 +175,8 @@ export default gql`
       password: String!,
       captchaResponse: String!
     ): Boolean
+
+    subscribeToMailList(email: String!): Boolean
   }
 
   type Subscription {
