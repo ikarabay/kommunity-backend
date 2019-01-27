@@ -20,6 +20,15 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
         isUUID: 4,
       },
     },
+    reputation: {
+      type: dataTypes.INTEGER,
+      allowNull: false,
+      field: 'reputation',
+      validate: {
+        min: 0,
+      },
+      defaultValue: 0,
+    },
     status: {
       type: dataTypes.ENUM('invited', 'applied', 'approved', 'banned'),
       allowNull: false,

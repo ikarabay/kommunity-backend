@@ -3,12 +3,6 @@ import { gql } from 'apollo-server-express';
 export default gql`
   scalar Date
 
-  enum EventLocationType {
-    unplanned
-    online
-    address
-  }
-
   enum CommunityTier {
     free
     tier1
@@ -39,6 +33,12 @@ export default gql`
     user_avatar
     community_avatar
     post_attachment
+  }
+
+  enum EventLocationType {
+    unplanned
+    online
+    address
   }
 
   type Event {
@@ -106,6 +106,7 @@ export default gql`
   type CommunityUser {
     communityUuid: String
     userUuid: String
+    reputation: Int
     status: String
     role: String
   }
@@ -142,16 +143,20 @@ export default gql`
   type Query {
     getChannels(communityUUID: String!): [Channel]
     getMessagesForChannel(channelUUID: String!, cursor: Int): ChannelMessages
-    getCommunityEvents(communityUuid: ID!): [Event]
+
+    getCommunityEvents(communityUuid: ID!, limit: Int): [Event]
     getCommunityMembers(uuid: ID!): Community
+    getCommunityMostActiveMembers(communityUuid: ID!): [UserDetails]
     getLoggedInUserDetails: LoggedInUserDetails
+    popularCommunities: [PopularCommunity]
+
     getUserDetailsByUuid(uuid: ID!): UserDetails
     getUserEvents(userUuid: ID!): [Event]
-    getLoggedInUserCommunities: [Community]
     getUserCommunitiesByUuid(uuid: ID!): [Community]
+    getLoggedInUserCommunities: [Community]
+
     searchCommunities(query: String!): [Community]
     searchUsers(query:String!): [UserDetails]
-    popularCommunities: [PopularCommunity]
   }
 
   type Mutation {

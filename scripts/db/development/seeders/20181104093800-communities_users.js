@@ -2,6 +2,7 @@ const items = [
   {
     community_uuid: '6c52dc16-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 0,
     status: 'approved',
     role: 'owner',
     created_at: new Date(),
@@ -10,6 +11,7 @@ const items = [
   {
     community_uuid: '6c52dc16-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467ba2-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 1,
     status: 'applied',
     role: 'guest',
     created_at: new Date(),
@@ -18,6 +20,7 @@ const items = [
   {
     community_uuid: '6c52dc16-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467fee-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 2,
     status: 'invited',
     role: 'moderator',
     created_at: new Date(),
@@ -26,6 +29,7 @@ const items = [
   {
     community_uuid: '6c52dc16-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467a44-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 6,
     status: 'approved',
     role: 'admin',
     created_at: new Date(),
@@ -34,6 +38,7 @@ const items = [
   {
     community_uuid: '6c52debe-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 5,
     status: 'approved',
     role: 'owner',
     created_at: new Date(),
@@ -42,6 +47,7 @@ const items = [
   {
     community_uuid: '6c52debe-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467a44-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 4,
     status: 'applied',
     role: 'guest',
     created_at: new Date(),
@@ -50,6 +56,7 @@ const items = [
   {
     community_uuid: '6c52debe-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467ba2-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 3,
     status: 'invited',
     role: 'moderator',
     created_at: new Date(),
@@ -58,6 +65,7 @@ const items = [
   {
     community_uuid: '6c52debe-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467fee-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 8,
     status: 'approved',
     role: 'admin',
     created_at: new Date(),
@@ -66,6 +74,7 @@ const items = [
   {
     community_uuid: '6c52e274-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 10,
     status: 'approved',
     role: 'owner',
     created_at: new Date(),
@@ -74,6 +83,7 @@ const items = [
   {
     community_uuid: '6c52e274-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467fee-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 0,
     status: 'applied',
     role: 'guest',
     created_at: new Date(),
@@ -82,6 +92,7 @@ const items = [
   {
     community_uuid: '6c52e274-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467a44-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 1,
     status: 'invited',
     role: 'moderator',
     created_at: new Date(),
@@ -90,6 +101,7 @@ const items = [
   {
     community_uuid: '6c52e274-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467ba2-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 4,
     status: 'approved',
     role: 'admin',
     created_at: new Date(),
@@ -98,6 +110,7 @@ const items = [
   {
     community_uuid: '6c52e3c8-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467ba2-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 3,
     status: 'approved',
     role: 'owner',
     created_at: new Date(),
@@ -106,6 +119,7 @@ const items = [
   {
     community_uuid: '6c52e3c8-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 6,
     status: 'approved',
     role: 'member',
     created_at: new Date(),
@@ -114,6 +128,7 @@ const items = [
   {
     community_uuid: '6c52e3c8-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467fee-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 12,
     status: 'banned',
     role: 'moderator',
     created_at: new Date(),
@@ -122,6 +137,7 @@ const items = [
   {
     community_uuid: '6c52e3c8-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467a44-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 20,
     status: 'invited',
     role: 'moderator',
     created_at: new Date(),
@@ -130,6 +146,7 @@ const items = [
   {
     community_uuid: '6c52e508-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467ba2-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 30,
     status: 'approved',
     role: 'owner',
     created_at: new Date(),
@@ -138,6 +155,7 @@ const items = [
   {
     community_uuid: '6c52e508-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 45,
     status: 'invited',
     role: 'admin',
     created_at: new Date(),
@@ -146,6 +164,7 @@ const items = [
   {
     community_uuid: '6c52e508-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467fee-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 5,
     status: 'applied',
     role: 'guest',
     created_at: new Date(),
@@ -154,6 +173,7 @@ const items = [
   {
     community_uuid: '6c52e63e-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '33467fee-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 10,
     status: 'approved',
     role: 'owner',
     created_at: new Date(),
@@ -162,6 +182,7 @@ const items = [
   {
     community_uuid: '6c52e63e-d6a6-11e8-9f8b-f2801f1b9fd1',
     user_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    reputation: 2,
     status: 'approved',
     role: 'member',
     created_at: new Date(),

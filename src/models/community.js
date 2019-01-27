@@ -87,7 +87,7 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
   });
   Community.associate = (models) => {
     Community.belongsToMany(models.User, { as: 'users', through: models.CommunityUser });
-    Community.hasMany(models.CommunityUser);
+    Community.hasMany(models.CommunityUser, { seperate: true });
     Community.hasMany(models.ConversationCategory, {
       foreignKey: 'communityUuid',
     });
