@@ -130,19 +130,26 @@ export default (app: App) => {
         order: [[app.sequelize.literal('"userCount"'), 'DESC']],
       }).map(data => data.toJSON());
     },
-    searchCommunities: (parent: {}, args: { name: string }) => {
+    searchCommunities: (parent: {}, args: { query: string }) => {
+      const keywords = args.query.split(' ');
+      const orQuery = keywords.map((text) => {
+        return {
+          $iLike: `%${text}%`,
+        };
+      });
       return app.models.Community.findAll({
-        include: [{ model: app.models.User }],
         where: {
-          name: {
-            $ilike: `%${args.name}%`,
+          $or: {
+            name: {
+              $or: orQuery,
+            },
           },
         },
       });
     },
-    searchUsers: (parent: {}, args: { queryText: string }) => {
-      const queryTextArray = args.queryText.split(' ');
-      const orQuery = queryTextArray.map((text) => {
+    searchUsers: (parent: {}, args: { query: string }) => {
+      const keywords = args.query.split(' ');
+      const orQuery = keywords.map((text) => {
         return {
           $iLike: `%${text}%`,
         };

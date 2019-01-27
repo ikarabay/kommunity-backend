@@ -82,6 +82,7 @@ export default gql`
 
   type UserDetails {
     uuid: ID!
+    email: String
     firstName: String
     lastName: String
     username: String
@@ -148,8 +149,8 @@ export default gql`
     getUserEvents(userUuid: ID!): [Event]
     getLoggedInUserCommunities: [Community]
     getUserCommunitiesByUuid(uuid: ID!): [Community]
-    searchCommunities(name: String!): [Community]
-    searchUsers(queryText:String!): [UserDetails]
+    searchCommunities(query: String!): [Community]
+    searchUsers(query:String!): [UserDetails]
     popularCommunities: [PopularCommunity]
   }
 
