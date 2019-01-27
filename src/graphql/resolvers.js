@@ -41,7 +41,7 @@ export default (app: App) => {
         nextCursor: cursor + 1,
       };
     },
-    getCommunityEvents: (parent: {}, args: { communityUuid: uuid }) => {
+    getCommunityEvents: (parent: {}, args: { communityUuid: uuid, limit: number }) => {
       // returns community events for given community id
       return app.models.Event.findAll({
         where: { communityUuid: args.communityUuid },
