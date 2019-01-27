@@ -82,6 +82,13 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
         isDate: true,
       },
     },
+    canResetPasswordBy: {
+      type: dataTypes.DATE,
+      field: 'can_reset_password_by',
+      validate: {
+        isDate: true,
+      },
+    },
   },
   {
     paranoid: true,

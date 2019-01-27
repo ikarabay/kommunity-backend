@@ -1,27 +1,20 @@
-import type App from '$/lib/app';
 import { ApolloError, AuthenticationError } from 'apollo-server';
+import md5 from 'md5';
+import moment from 'moment';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import uuid from 'uuid';
-import md5 from 'md5';
-import axios from 'axios';
 import validator from 'validator';
 
-import { generateTokenForUser } from '$/auth/lib';
-import { RECAPTCHA_API_KEY } from '$/constants';
+import type App from '$/lib/app';
+import config from '$/config';
+import {
+  AUTH_TOKEN_EXPIRE_IN_SECONDS, TOKEN_TYPE, generateTokenForUser, getUserFromToken,
+} from '$/auth/lib';
 
 export const pubsub = new PubSub();
 
 const COMMUNITY_VISIBILITY_PUBLIC = 'public';
-const AUTH_TOKEN_EXPIRE = 1000 * 60 * 60 * 24 * 7; // 7 days
 const MESSAGES_PAGE_SIZE = 20;
-
-const EMAIL_DETAILS = {
-  SIGNUP_CONFIRMATION: {
-    // TODO update
-    from: 'hi@kommunity.app',
-    templateId: 'd-12933ab7b8bd49fa93f487fd949fead5',
-  },
-};
 
 export default (app: App) => {
   const Query = {
@@ -195,6 +188,94 @@ export default (app: App) => {
         visibility: args.visibility,
       });
     },
+    forgotPassword: async (parent: {}, args: {
+      email: string,
+    }, { clients }: { clients: AppClients }) => {
+      // check if there is a user with that email
+      const user = await app.models.User.findOne({
+        where: { email: args.email },
+      });
+
+      if (!user) {
+        throw new AuthenticationError('There is no user registered with that email address, sorry.');
+      }
+
+      const userObj = user.get();
+
+      await user.update({
+        canResetPasswordBy: moment().add(
+          config.server.security.resetPassword.linkExpireInSeconds, 'seconds',
+        ),
+      });
+
+      // generate reset password jwt token
+      const token = generateTokenForUser(
+        userObj,
+        TOKEN_TYPE.RESET_PASSWORD,
+      );
+
+      const { from, templateId } = config.server.emails.forgotPassword;
+      clients.mailer.sendMail({
+        from,
+        tags: {
+          resetPasswordURL: `${config.server.security.resetPassword.resetURL}?token=${token}`,
+        },
+        templateId,
+        to: args.email,
+      });
+      return true;
+    },
+    resetPassword: async (parent: {}, args: {
+      newPassword: string,
+      token: string,
+    }) => {
+      let tokenUser;
+
+      try {
+        tokenUser = await getUserFromToken(args.token, TOKEN_TYPE.RESET_PASSWORD);
+      } catch (error) {
+        throw new AuthenticationError(
+          'Your token is expired or invalid. Please go back to forgot password page, and try again.',
+        );
+      }
+
+      // check if there is a user with that email
+      const user = await app.models.User.findOne({
+        where: { email: tokenUser.email },
+      });
+
+      if (!user) {
+        throw new AuthenticationError('We couldn\'t find a registered user, sorry.');
+      }
+
+      if (!user.canResetPasswordBy) {
+        throw new AuthenticationError(
+          'Either you already changed your password, or link has expired. '
+          + 'Please go back to forgot password page, and try again.',
+        );
+      }
+
+      // $FlowFixMe
+      const timeLeft = moment(user.canResetPasswordBy, moment.defaultFormat)
+        .diff(moment(), 'seconds');
+      const canReset = timeLeft > 0 && timeLeft < config.server.security.resetPassword.linkExpireInSeconds;
+
+      if (!canReset) {
+        throw new AuthenticationError(
+          'Link has expired, please go back to forgot my password page and try again.',
+        );
+      }
+
+      // all validations passed, update the user
+      const newPasswordHash = md5(args.newPassword);
+      await user.update({
+        canResetPasswordBy: null,
+        passwordHash: newPasswordHash,
+      });
+
+      // TODO consider sending reset successful email to the user
+      return true;
+    },
     login: async (parent: {}, args: {
       email: string,
       password: string
@@ -216,10 +297,12 @@ export default (app: App) => {
       }
 
       // all good, generate the jwt token
-      const token = generateTokenForUser(userObj);
+      const token = generateTokenForUser(userObj, TOKEN_TYPE.AUTH);
 
       // TODO use signed param below?
-      setCookie('authorization', token, { maxAge: AUTH_TOKEN_EXPIRE, httpOnly: true });
+      setCookie('authorization', token, {
+        maxAge: AUTH_TOKEN_EXPIRE_IN_SECONDS * 1000, httpOnly: true,
+      });
       return true;
     },
     logout: async (parent: {}, args: {}, { removeCookie }: { removeCookie: (string) => void }) => {
@@ -232,14 +315,14 @@ export default (app: App) => {
       captchaResponse: string
     }, { setCookie, clients }: { setCookie: (string, string, Object) => void, clients: AppClients }) => {
       // check captcha result before all
-      const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_API_KEY}&response=${args.captchaResponse}`;
-      const captchaResult = await axios(verificationUrl).then(response => response.data.success);
-      if (!captchaResult) {
+      if (!await clients.captcha.verifyCaptcha(args.captchaResponse)) {
         throw new AuthenticationError('Recaptcha verification failed, please refresh the page and try again.');
       }
 
       // input validations
-      if (!validator.isEmail(args.email)) { throw new ApolloError('E-mail address must be valid.'); }
+      if (!validator.isEmail(args.email)) {
+        throw new ApolloError('E-mail address must be valid.');
+      }
       if (!validator.isLength(args.password, { min: 6 })) {
         throw new ApolloError('Password must be at least 6 characters long.');
       }
@@ -262,7 +345,7 @@ export default (app: App) => {
       const userObj = user.get();
 
       // Sending async confirmation email
-      const { from, templateId } = EMAIL_DETAILS.SIGNUP_CONFIRMATION;
+      const { from, templateId } = config.server.emails.signupConfirmation;
       clients.mailer.sendMail({
         to: args.email,
         from,
@@ -271,10 +354,12 @@ export default (app: App) => {
       });
 
       // all good, generate the jwt token
-      const token = generateTokenForUser(userObj);
+      const token = generateTokenForUser(userObj, TOKEN_TYPE.AUTH);
 
       // TODO use signed param below?
-      setCookie('authorization', token, { maxAge: AUTH_TOKEN_EXPIRE, httpOnly: true });
+      setCookie('authorization', token, {
+        maxAge: AUTH_TOKEN_EXPIRE_IN_SECONDS * 1000, httpOnly: true,
+      });
       return true;
     },
     subscribeToMailList: async (parent: {}, args: {

@@ -1,8 +1,10 @@
 {
   "server": {
     "allowedCorsOrigins": ["https://staging.kommunity.app"],
-    "secrets": {
-      "jwt": "staging-jwt-secret"
+    "security": {
+      "resetPassword": {
+        "resetURL": "https://staging.kommunity.app/reset-password"
+      }
     },
     "sentry": {
       "dsn": "https://3a6da0069d6545d89e80cb157cdca689@sentry.io/1305830",

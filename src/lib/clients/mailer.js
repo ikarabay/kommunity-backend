@@ -8,7 +8,7 @@ type SendMailArgsType = {
   to: string,
   from: string,
   templateId: string,
-  tags: {[string]: string},
+  tags?: {[string]: string},
 };
 
 type TaskDetailsType = {

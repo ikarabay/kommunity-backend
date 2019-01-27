@@ -2,8 +2,10 @@
   "server": {
     "allowedCorsOrigins": ["http://localhost:3000"],
     "port": 3008,
-    "secrets": {
-      "jwt": "development-jwt-secret"
+    "security": {
+      "resetPassword": {
+        "resetURL": "http://localhost:3000/reset-password"
+      }
     },
     "sentry": {
       "dsn": "https://3a6da0069d6545d89e80cb157cdca689@sentry.io/1305830",
