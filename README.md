@@ -19,7 +19,7 @@ cd kommunity-backend
 
 ##### Windows?
 - You may need to put the project folder under `C:/Users/` directory, otherwise volume mounting may not work.
-- You can't install Docker on Windows 10 HOME (and 7, vista, ..). Instead, install Docker **TOOLBOX** from here: 
+- You can't install Docker on Windows 10 HOME (and 7, vista, ..). Instead, install Docker **TOOLBOX** from here:
 https://docs.docker.com/toolbox/toolbox_install_windows/
 - Go to toolbox folder, and start the docker by double clicking on `..\Docker Toolbox\start.cmd`.
 - Output will look like this:
@@ -31,7 +31,7 @@ For help getting started, check out the docs at https://docs.docker.com
 - Copy the IP address from the log.
 
 
-### 2. Install app dependencies 
+### 2. Install app dependencies
 ``` bash
 npm install
 ```
@@ -75,14 +75,19 @@ Instead of using localhost, use the IP address you copied in step 1, for example
 - `npm run container:web-exec`: execute a command on web (server) container. Example: `npm run container:web-exec "ls -l"`
 - `npm run container:web-sh`: start the shell in web container (server)
 - `npm run container:db-exec`: execute a command on db (postgres) container
-- `npm run container:db-sh`: start the shell in db container 
+- `npm run container:db-sh`: start the shell in db container
 - `npm run container:reset`: delete all(!) docker images, and rebuilds them and start
 
 ## Other details
 
+### Testing emails (w/ sendgrid)
+If you want to test flows involving sending emails/mail lists, you need to get your api key from Sendgrid, [click here](https://sendgrid.com/docs/ui/account-and-settings/api-keys/). Make sure key you create has permission level `full access`.
+
+If your task requires sending transactional emails using `sendgrid` templates, you may need to create your own template, copy template-id provided and update `server.emails.*.templateId` in `config/default.json`.
+
 ### Database admin UI (pgAdmin)
 Go to:
-[http://localhost:6432](http://localhost:6432) 
+[http://localhost:6432](http://localhost:6432)
 
 Login using the following credentials:
 username: `dev@selmankahya.com` -- password: `selman`
@@ -161,10 +166,10 @@ Commands you need:
 
 ### Heroku
 - Login to heroku:
-`heroku login` 
+`heroku login`
 
 - Add heroku app to local:
-`heroku git:remote -a staging-backend-kommunity` 
+`heroku git:remote -a staging-backend-kommunity`
 
 - See logs:
 `heroku logs --tail`
