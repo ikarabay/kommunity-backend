@@ -66,13 +66,18 @@ declare type AppModels = {
   Channel: any,
 };
 
-declare type AppMailer = {
+declare type AppMailerClient = {
   addRecipient: Function,
   sendMail: Function,
 }
 
+declare type AppCaptchaClient = {
+  verifyCaptcha: (string) => Promise<boolean>,
+}
+
 declare type AppClients = {
-  mailer: AppMailer,
+  captcha: AppCaptchaClient,
+  mailer: AppMailerClient,
 };
 
 declare class exExpress$Request extends express$Request {

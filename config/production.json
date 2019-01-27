@@ -1,9 +1,6 @@
 {
   "server": {
     "allowedCorsOrigins": ["https://kommunity.app", "https://www.kommunity.app"],
-    "secrets": {
-      "jwt": "production-jwt-secret"
-    },
     "sentry": {
       "dsn": "https://3a6da0069d6545d89e80cb157cdca689@sentry.io/1305830",
       "environment": "production",

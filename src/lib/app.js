@@ -9,7 +9,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { AuthenticationError } from 'apollo-server';
 import Cors from 'cors';
 import CookieParser from 'cookie-parser';
-import { getUserFromToken } from '$/auth/lib';
+import { TOKEN_TYPE, getUserFromToken } from '$/auth/lib';
 import { makeExecutableSchema } from 'graphql-tools';
 import Morgan from 'morgan';
 import * as Sentry from '@sentry/node';
@@ -18,6 +18,7 @@ import helmet from 'helmet';
 
 import config from '$/config';
 import DbClient, { importModels } from './clients/db';
+import CaptchaClient from './clients/captcha';
 import MailerClient from './clients/mailer';
 
 import gqlSchema from '$/graphql/schema';
@@ -35,10 +36,17 @@ export default class App {
   constructor() {
     this.config = config;
 
+    // importing sample env variables in dev env for testing
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line
+      require('dotenv').config({ path: '.env.development' })
+    }
+
     const srcPath = path.join(path.resolve(), 'src');
     this.modelsPath = path.join(srcPath, 'models');
 
     this.clients = {
+      captcha: new CaptchaClient(),
       mailer: new MailerClient(),
     };
 
@@ -160,7 +168,7 @@ export default class App {
         let user;
         if (token) {
           try {
-            user = await getUserFromToken(token);
+            user = await getUserFromToken(token, TOKEN_TYPE.AUTH);
           } catch (error) {
             throw new AuthenticationError();
           }

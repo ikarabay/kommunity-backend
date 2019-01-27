@@ -2,7 +2,31 @@
   "server": {
     "viewEngine": "hbs",
     "viewFolderPath": "views",
-    "publicFolderPath": "public"
+    "publicFolderPath": "public",
+    "security": {
+      "jwt" :{
+        "auth": {
+          "expireInSeconds": 2592000
+        },
+        "reset": {
+          "expireInSeconds": 86400
+        }
+      },
+      "resetPassword": {
+        "linkExpireInSeconds": 86400,
+        "resetURL": "https://kommunity.app/reset-password"
+      }
+    },
+    "emails": {
+      "signupConfirmation": {
+        "from": "hi@kommunity.app",
+        "templateId": "d-12933ab7b8bd49fa93f487fd949fead5"
+      },
+      "forgotPassword": {
+        "from": "hi@kommunity.app",
+        "templateId": "d-c6bcaf900868400f9e4100031c887889"
+      }
+    }
   },
   "db": {
     "dialect": "postgres",

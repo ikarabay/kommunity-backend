@@ -168,6 +168,8 @@ export default gql`
       text: String,
     ): Message
 
+    forgotPassword(email: String!): Boolean
+    resetPassword(newPassword: String!, token: String!): Boolean
     login(email: String!, password: String!): Boolean
     logout: Boolean
     signup(
