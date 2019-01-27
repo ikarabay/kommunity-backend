@@ -41,10 +41,11 @@ export default (app: App) => {
         nextCursor: cursor + 1,
       };
     },
-    getCommunityEvents: (parent: {}, args: { communityUuid: uuid }) => {
+    getCommunityEvents: (parent: {}, args: { communityUuid: uuid, limit: number }) => {
       // returns community events for given community id
       return app.models.Event.findAll({
         where: { communityUuid: args.communityUuid },
+        limit: args.limit || 10,
       });
     },
     getUserEvents: async (parent: {}, args: { userUuid: uuid }) => {
@@ -70,6 +71,33 @@ export default (app: App) => {
         ],
         where: { uuid: args.uuid },
       });
+    },
+    getCommunityMostActiveMembers: async (parent: {}, args: { communityUuid: uuid }) => {
+      const limit = 10;
+      // TODO limit doesnt work with below query, consider updating
+      // returns community members for given community id
+      const community = await app.models.Community.findOne({
+        include: [
+          {
+            model: app.models.User,
+            as: 'users',
+          },
+          {
+            model: app.models.CommunityUser,
+          },
+        ],
+        // Sorting by users.CommunityUser.reputation column
+        order: [
+          [
+            { model: app.models.User, as: 'users' },
+            { model: app.models.CommunityUser },
+            'reputation',
+            'DESC',
+          ],
+        ],
+        where: { uuid: args.communityUuid },
+      });
+      return community ? community.users.slice(0, limit) : [];
     },
     getLoggedInUserDetails: (parent: {}, args: {}, { user }: {user: AppUser}) => {
       return app.models.User.findOne({
