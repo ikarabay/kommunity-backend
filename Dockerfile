@@ -8,6 +8,7 @@ WORKDIR /usr/app
 
 # For now, only copy package.json, BETTER FOR CACHING
 COPY package.json ./
+COPY package-lock.json ./
 
 # Install app dependencies
 RUN npm install
