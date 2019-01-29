@@ -42,6 +42,16 @@ export default (clients: AppClients) => {
         nextCursor: cursor + 1,
       };
     },
+    getCommunityConversationPosts: (parent: {}, args: { communityUuid: uuid, limit: number }) => {
+      // returns community events for given community id
+      return db.models.ConversationPost.findAll({
+        where: { communityUuid: args.communityUuid },
+        limit: args.limit || 10,
+        order: [
+          ['created_at', 'DESC'],
+        ],
+      });
+    },
     getCommunityEvents: (parent: {}, args: { communityUuid: uuid, limit: number }) => {
       // returns community events for given community id
       return db.models.Event.findAll({

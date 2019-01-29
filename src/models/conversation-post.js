@@ -50,6 +50,13 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
         notEmpty: true,
       },
     },
+    title: {
+      type: dataTypes.STRING(50),
+      field: 'title',
+      validate: {
+        len: [1, 50],
+      },
+    },
     viewCount: {
       type: dataTypes.INTEGER,
       defaultValue: 0,
@@ -59,9 +66,8 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
       },
     },
     attachmentUploadUuids: {
-      type: dataTypes.TEXT('long'),
+      type: dataTypes.ARRAY(dataTypes.TEXT),
       field: 'attachment_upload_uuids',
-      validate: { },
     },
   }, {
     paranoid: true,

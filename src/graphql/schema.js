@@ -16,19 +16,6 @@ export default gql`
     secret
   }
 
-  enum ConversationCategoryType {
-    public
-    private
-    secret
-  }
-
-  enum ConversationCategoryRole {
-    guest
-    member
-    moderator
-    admin
-  }
-
   enum UploadedItemType {
     user_avatar
     community_avatar
@@ -39,6 +26,18 @@ export default gql`
     unplanned
     online
     address
+  }
+
+  type ConversationPost {
+    uuid: ID!
+    authorUuid: ID!
+    parentUuid: ID
+    communityUuid: ID!
+    categoryUuid: ID!
+    content: String!
+    title: String
+    viewCount: Int!
+    attachmentUploadUuids: [ID!]
   }
 
   type Event {
@@ -145,6 +144,7 @@ export default gql`
     getChatChannels(communityUuid: String!): [ChatChannel]
     getChatMessagesForChannel(channelUuid: String!, cursor: Int): ChatChannelMessages
 
+    getCommunityConversationPosts(communityUuid: ID!, limit: Int): [ConversationPost]
     getCommunityEvents(communityUuid: ID!, limit: Int): [Event]
     getCommunityMembers(uuid: ID!): Community
     getCommunityMostActiveMembers(communityUuid: ID!): [UserDetails]
