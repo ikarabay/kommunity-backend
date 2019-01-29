@@ -44,24 +44,32 @@ class PostgreListener {
   }
 
   init = async () => {
+    console.log('1');
     this.client = new pg.Client(this.databaseUrl);
     await this.client.connect();
+    console.log('2');
     this.client.on('error', (err) => {
+      console.log('2a');
       if (process.env.NODE_ENV !== 'production') {
         console.error('POSTGRE_PUBSUB_FAILED', err);
       }
       Sentry.captureException(err);
     });
+    console.log('3');
     this.client.on('notification', this.onNotification);
     this.listen();
+    console.log('4');
   }
 
   listen = async () => {
+    console.log('5');
     const statement = `LISTEN ${this.client.escapeIdentifier(this.channel)}`;
     await this.client.query(statement);
+    console.log('6');
   }
 
   subscribe = (subscriber: onNotifyType) => {
+    console.log('7');
     this.subscribers.push(subscriber);
   }
 
@@ -79,6 +87,7 @@ class PostgreListener {
   */
 
   onNotification = ({ payload }: { payload: string }) => {
+    console.log('8');
     try {
       const decodedPayload = JSON.parse(payload);
       // TODO consider using debug npm package to avoid these prod checks in many files
@@ -86,8 +95,10 @@ class PostgreListener {
         console.log(`DB notification on channel: ${this.channel}, payload:`);
         console.log(decodedPayload);
       }
+      console.log('9');
       this.subscribers.forEach(subscriber => subscriber(decodedPayload));
     } catch (error) {
+      console.log('10');
       Sentry.captureException(error);
     }
   };
