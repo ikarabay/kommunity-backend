@@ -1,7 +1,7 @@
 import Sequelize, { type DataTypes } from 'sequelize';
 
 module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
-  const Channel = sequelize.define('Channel', {
+  const ChatChannel = sequelize.define('ChatChannel', {
     communityUuid: {
       type: dataTypes.UUID,
       allowNull: false,
@@ -38,17 +38,17 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
     paranoid: true,
     underscored: true,
     freezeTableName: true,
-    tableName: 'channels',
+    tableName: 'chat_channels',
   });
 
-  Channel.associate = (models) => {
-    Channel.hasMany(models.Message, {
+  ChatChannel.associate = (models) => {
+    ChatChannel.hasMany(models.ChatMessage, {
       foreignKey: 'channelUuid',
     });
-    Channel.belongsTo(models.Community, {
+    ChatChannel.belongsTo(models.Community, {
       as: 'community',
     });
   };
 
-  return Channel;
+  return ChatChannel;
 };

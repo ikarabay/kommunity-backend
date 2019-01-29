@@ -1,7 +1,16 @@
 import Sequelize, { type DataTypes } from 'sequelize';
 
 module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
-  const Message = sequelize.define('Message', {
+  const ChatMessage = sequelize.define('ChatMessage', {
+    uuid: {
+      type: dataTypes.UUID,
+      primaryKey: true,
+      allowNull: false,
+      field: 'uuid',
+      validate: {
+        isUUID: 4,
+      },
+    },
     channelUuid: {
       type: dataTypes.UUID,
       allowNull: false,
@@ -14,15 +23,6 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
       type: dataTypes.UUID,
       allowNull: false,
       field: 'sender_uuid',
-      validate: {
-        isUUID: 4,
-      },
-    },
-    uuid: {
-      type: dataTypes.UUID,
-      primaryKey: true,
-      allowNull: false,
-      field: 'uuid',
       validate: {
         isUUID: 4,
       },
@@ -43,16 +43,17 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
     paranoid: true,
     underscored: true,
     freezeTableName: true,
-    tableName: 'messages',
+    tableName: 'chat_messages',
   });
-  Message.associate = (models) => {
-    Message.belongsTo(models.User, {
+
+  ChatMessage.associate = (models) => {
+    ChatMessage.belongsTo(models.User, {
       as: 'sender',
     });
-    Message.belongsTo(models.Channel, {
+    ChatMessage.belongsTo(models.ChatChannel, {
       as: 'channel',
     });
   };
 
-  return Message;
+  return ChatMessage;
 };

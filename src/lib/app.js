@@ -17,7 +17,7 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import helmet from 'helmet';
 
 import config from '$/config';
-import DbClient, { importModels } from './clients/db';
+import DbClient from './clients/db';
 import CaptchaClient from './clients/captcha';
 import MailerClient from './clients/mailer';
 
@@ -26,11 +26,9 @@ import gqlResolvers from '$/graphql/resolvers';
 
 export default class App {
   httpServer: ?Server;
-  modelsPath: string;
   config: AppConfig;
   express: express$Application;
   sequelize: Sequelize;
-  models: AppModels;
   clients: AppClients;
 
   constructor() {
@@ -42,11 +40,9 @@ export default class App {
       require('dotenv').config({ path: '.env.development' })
     }
 
-    const srcPath = path.join(path.resolve(), 'src');
-    this.modelsPath = path.join(srcPath, 'models');
-
     this.clients = {
       captcha: new CaptchaClient(),
+      db: new DbClient(),
       mailer: new MailerClient(),
     };
 
@@ -109,13 +105,11 @@ export default class App {
     this.express.use(CookieParser());
     this.express.use(Express.static(path.join(path.resolve(), publicFolderPath)));
 
-    this.initDbClient();
-    this.initModels();
     this.initRoutes();
     this.startServer();
 
     // eslint-disable-next-line
-    this.express.use((req: exExpress$Request, res: express$Response, next: express$NextFunction) => {
+    this.express.use((req: express$Request, res: express$Response, next: express$NextFunction) => {
       res.statusCode = 404;
       res.json({ message: 'not_found' });
     });
@@ -127,28 +121,16 @@ export default class App {
 
     // Optional fallthrough error handler
     // eslint-disable-next-line
-    this.express.use((err: Error, req: exExpress$Request, res: express$Response, next: express$NextFunction) => {
+    this.express.use((err: Error, req: express$Request, res: express$Response, next: express$NextFunction) => {
       res.statusCode = 500;
       // eslint-disable-next-line no-underscore-dangle
       res.json({ message: 'internal_error', eventId: Sentry.getCurrentHub()._lastEventId });
     });
   };
 
-  initDbClient = (): void => {
-    if (process.env.NODE_ENV !== 'test'
-      && typeof process.env.DATABASE_URL !== 'string') {
-      throw new Error('Database connecting string is missing!');
-    }
-    this.sequelize = DbClient(process.env.DATABASE_URL || '');
-  };
-
-  initModels = (): void => {
-    this.models = importModels(this.modelsPath, this.sequelize);
-  };
-
   initRoutes = (): void => {
     const router: express$Router = Express.Router();
-    router.get('/health', (req: exExpress$Request, res: express$Response) => {
+    router.get('/health', (req: express$Request, res: express$Response) => {
       res.end('OK');
     });
     this.express.use('/', router);
@@ -174,13 +156,12 @@ export default class App {
           }
         }
         return {
-          clients: this.clients,
           setCookie: (name, value, opts: Object) => res.cookie(name, value, { ...opts, ...defaultCookieOpts }),
           removeCookie: (name, opts: Object) => res.clearCookie(name, { ...opts, ...defaultCookieOpts }),
           user,
         };
       },
-      resolvers: gqlResolvers(this),
+      resolvers: gqlResolvers(this.clients),
       typeDefs: gqlSchema,
     };
     const schema = makeExecutableSchema(schemaConf);

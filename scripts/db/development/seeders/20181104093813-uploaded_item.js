@@ -1,7 +1,7 @@
 const items = [
   {
     uuid: '23ea0cb8-d6a1-11e8-9f8b-f2801f1b9fd1',
-    owner_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    owner_uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     name: 'Test Community Avatar 03',
     original_file_name: 'test_community_avatar_03.png',
     type: 'community_avatar',
@@ -11,7 +11,7 @@ const items = [
   },
   {
     uuid: '23ea0d96-d6a1-11e8-9f8b-f2801f1b9fd1',
-    owner_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    owner_uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     name: 'Test User Post Attachment 01',
     original_file_name: 'test_01.doc',
     type: 'post_attachment',
@@ -21,7 +21,7 @@ const items = [
   },
   {
     uuid: '23ea0c60-d6a1-11e8-9f8b-f2801f1b9fd1',
-    owner_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    owner_uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     name: 'Test User Post Attachment 02',
     original_file_name: 'test_02.doc',
     type: 'post_attachment',

@@ -120,29 +120,30 @@ export default gql`
     userCount: Int
   }
 
-  type Message {
+  type ChatMessage {
     channelUuid: String
     uuid: String
     sender: UserDetails
+    senderUuid: String
     text: String
     createdAt: Date
   }
 
-  type Channel {
+  type ChatChannel {
     communityUuid: String
     uuid: String
     name: String
     desc: String
   }
 
-  type ChannelMessages {
+  type ChatChannelMessages {
     nextCursor: Int
-    messages: [Message]
+    messages: [ChatMessage]
   }
 
   type Query {
-    getChannels(communityUUID: String!): [Channel]
-    getMessagesForChannel(channelUUID: String!, cursor: Int): ChannelMessages
+    getChatChannels(communityUuid: String!): [ChatChannel]
+    getChatMessagesForChannel(channelUuid: String!, cursor: Int): ChatChannelMessages
 
     getCommunityEvents(communityUuid: ID!, limit: Int): [Event]
     getCommunityMembers(uuid: ID!): Community
@@ -168,11 +169,10 @@ export default gql`
       tier: CommunityTier
       visibility: CommunityType
     ): Community
-    sendMessage(
-      channelUUID: String
-      senderUUID: String,
+    sendChatMessage(
+      channelUuid: String
       text: String,
-    ): Message
+    ): ChatMessage
 
     forgotPassword(email: String!): Boolean
     resetPassword(newPassword: String!, token: String!): Boolean
@@ -188,6 +188,6 @@ export default gql`
   }
 
   type Subscription {
-    messageSent(channelUUID: String!): Message
+    messageSent(channelUuid: String!): ChatMessage
   }
 `;
