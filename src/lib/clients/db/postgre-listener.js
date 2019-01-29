@@ -59,6 +59,7 @@ class PostgreListener {
   listen = async () => {
     const statement = `LISTEN ${this.client.escapeIdentifier(this.channel)}`;
     await this.client.query(statement);
+    console.log(this.client.query('select * from pg_listening_channels() '), 'xxx');
   }
 
   subscribe = (subscriber: onNotifyType) => {
