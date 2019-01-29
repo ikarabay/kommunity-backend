@@ -1,6 +1,6 @@
 const items = [
   {
-    uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     email: 'test01@test.com',
     password_hash: 'e10adc3949ba59abbe56e057f20f883e',
     first_name: 'Firstname',

@@ -75,8 +75,14 @@ declare type AppCaptchaClient = {
   verifyCaptcha: (string) => Promise<boolean>,
 }
 
+declare type AppDbClient = {
+  sequelize: Sequelize,
+  models: AppModels,
+}
+
 declare type AppClients = {
   captcha: AppCaptchaClient,
+  db: AppDbClient,
   mailer: AppMailerClient,
 };
 

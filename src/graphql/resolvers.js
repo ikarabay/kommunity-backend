@@ -2,37 +2,37 @@ import { ApolloError, AuthenticationError } from 'apollo-server';
 import md5 from 'md5';
 import moment from 'moment';
 import { PubSub, withFilter } from 'graphql-subscriptions';
-import uuid from 'uuid';
+import uuid from 'uuid/v4';
 import validator from 'validator';
 
-import type App from '$/lib/app';
 import config from '$/config';
 import {
   AUTH_TOKEN_EXPIRE_IN_SECONDS, TOKEN_TYPE, generateTokenForUser, getUserFromToken,
 } from '$/auth/lib';
-
-export const pubsub = new PubSub();
+import PostgreListener, { CHANNELS } from '$/lib/clients/db/postgre-listener';
 
 const COMMUNITY_VISIBILITY_PUBLIC = 'public';
 const MESSAGES_PAGE_SIZE = 20;
 
-export default (app: App) => {
+export default (clients: AppClients) => {
+  const { captcha: captchaClient, db: { models, sequelize }, mailer: mailerClient } = clients;
+
   const Query = {
-    getChannels: (parent: {}, args: {communityUUID: string}) => {
+    getChannels: (parent: {}, args: {communityUuid: string}) => {
       /* TODO bariscc: check if user has permission */
-      return app.models.Channel.findAll({
-        where: { community_uuid: args.communityUUID },
+      return models.Channel.findAll({
+        where: { communityUuid: args.communityUuid },
       });
     },
-    getMessagesForChannel: (parent: {}, args: {channelUUID: string, cursor: number}) => {
+    getMessagesForChannel: (parent: {}, args: {channelUuid: string, cursor: number}) => {
       const cursor = args.cursor ? args.cursor : 0;
 
       return {
-        messages: app.models.Message.findAll({
-          where: { channel_uuid: args.channelUUID },
+        messages: models.Message.findAll({
+          where: { channel_uuid: args.channelUuid },
           include: [
             {
-              model: app.models.User, as: 'sender',
+              model: models.User, as: 'sender',
             },
           ],
           offset: MESSAGES_PAGE_SIZE * cursor,
@@ -43,18 +43,18 @@ export default (app: App) => {
     },
     getCommunityEvents: (parent: {}, args: { communityUuid: uuid, limit: number }) => {
       // returns community events for given community id
-      return app.models.Event.findAll({
+      return models.Event.findAll({
         where: { communityUuid: args.communityUuid },
         limit: args.limit || 10,
       });
     },
     getUserEvents: async (parent: {}, args: { userUuid: uuid }) => {
       // returns all events for given user uuid
-      const user = await app.models.User.findOne({
+      const user = await models.User.findOne({
         include: [
           {
             as: 'events',
-            model: app.models.Event,
+            model: models.Event,
           },
         ],
         where: { uuid: args.userUuid },
@@ -63,10 +63,10 @@ export default (app: App) => {
     },
     getCommunityMembers: (parent: {}, args: { uuid: uuid }) => {
       // returns community members for given community id
-      return app.models.Community.findOne({
+      return models.Community.findOne({
         include: [
           {
-            model: app.models.User, as: 'users',
+            model: models.User, as: 'users',
           },
         ],
         where: { uuid: args.uuid },
@@ -76,21 +76,21 @@ export default (app: App) => {
       const limit = 10;
       // TODO limit doesnt work with below query, consider updating
       // returns community members for given community id
-      const community = await app.models.Community.findOne({
+      const community = await models.Community.findOne({
         include: [
           {
-            model: app.models.User,
+            model: models.User,
             as: 'users',
           },
           {
-            model: app.models.CommunityUser,
+            model: models.CommunityUser,
           },
         ],
         // Sorting by users.CommunityUser.reputation column
         order: [
           [
-            { model: app.models.User, as: 'users' },
-            { model: app.models.CommunityUser },
+            { model: models.User, as: 'users' },
+            { model: models.CommunityUser },
             'reputation',
             'DESC',
           ],
@@ -100,23 +100,23 @@ export default (app: App) => {
       return community ? community.users.slice(0, limit) : [];
     },
     getLoggedInUserDetails: (parent: {}, args: {}, { user }: {user: AppUser}) => {
-      return app.models.User.findOne({
-        include: [{ as: 'communities', model: app.models.Community }],
+      return models.User.findOne({
+        include: [{ as: 'communities', model: models.Community }],
         where: { uuid: user.uuid },
       });
     },
     getUserDetailsByUuid: (parent: {}, args: { uuid: uuid }) => {
-      return app.models.User.findOne({
-        include: [{ model: app.models.Community }],
+      return models.User.findOne({
+        include: [{ model: models.Community }],
         where: { uuid: args.uuid },
       });
     },
     getLoggedInUserCommunities: (parent: {}, args: {}, user: AppUser) => {
       // returns user communities
-      return app.models.Community.findAll({
+      return models.Community.findAll({
         include: [
           {
-            model: app.models.User,
+            model: models.User,
             where: { uuid: user.uuid },
           },
         ],
@@ -124,10 +124,10 @@ export default (app: App) => {
     },
     getUserCommunitiesByUuid: (parent: {}, args: { uuid: uuid }) => {
       // returns public user communities
-      return app.models.Community.findAll({
+      return models.Community.findAll({
         include: [
           {
-            model: app.models.User,
+            model: models.User,
             where: { uuid: args.uuid },
           },
         ],
@@ -136,7 +136,7 @@ export default (app: App) => {
     },
     popularCommunities: () => {
       // returns communities with most members
-      return app.models.Community.findAll({
+      return models.Community.findAll({
         limit: 10,
         subQuery: false,
         attributes: [
@@ -145,17 +145,17 @@ export default (app: App) => {
           'tagline',
           'desc',
           'location',
-          [app.sequelize.fn('COUNT', 'CommunityUser.userUuid'), 'userCount'],
+          [sequelize.fn('COUNT', 'CommunityUser.userUuid'), 'userCount'],
         ],
         include: [
           {
-            model: app.models.CommunityUser,
+            model: models.CommunityUser,
             attributes: [],
           },
         ],
         where: { visibility: COMMUNITY_VISIBILITY_PUBLIC },
         group: ['uuid'],
-        order: [[app.sequelize.literal('"userCount"'), 'DESC']],
+        order: [[sequelize.literal('"userCount"'), 'DESC']],
       }).map(data => data.toJSON());
     },
     searchCommunities: (parent: {}, args: { query: string }) => {
@@ -165,7 +165,7 @@ export default (app: App) => {
           $iLike: `%${text}%`,
         };
       });
-      return app.models.Community.findAll({
+      return models.Community.findAll({
         where: {
           $or: {
             name: {
@@ -182,7 +182,7 @@ export default (app: App) => {
           $iLike: `%${text}%`,
         };
       });
-      return app.models.User.findAll({
+      return models.User.findAll({
         where: {
           $or: {
             firstName: {
@@ -213,7 +213,7 @@ export default (app: App) => {
       },
     ) => {
       // TODO avatarUploadUuid, socialLinks
-      return app.models.Community.create({
+      return models.Community.create({
         uuid: uuid(),
         name: args.name,
         tagline: args.tagline,
@@ -225,9 +225,9 @@ export default (app: App) => {
     },
     forgotPassword: async (parent: {}, args: {
       email: string,
-    }, { clients }: { clients: AppClients }) => {
+    }) => {
       // check if there is a user with that email
-      const user = await app.models.User.findOne({
+      const user = await models.User.findOne({
         where: { email: args.email },
       });
 
@@ -250,7 +250,7 @@ export default (app: App) => {
       );
 
       const { from, templateId } = config.server.emails.forgotPassword;
-      clients.mailer.sendMail({
+      mailerClient.sendMail({
         from,
         tags: {
           resetPasswordURL: `${config.server.security.resetPassword.resetURL}?token=${token}`,
@@ -275,7 +275,7 @@ export default (app: App) => {
       }
 
       // check if there is a user with that email
-      const user = await app.models.User.findOne({
+      const user = await models.User.findOne({
         where: { email: tokenUser.email },
       });
 
@@ -316,7 +316,7 @@ export default (app: App) => {
       password: string
     }, { setCookie }: { setCookie: (string, string, Object) => void }) => {
       // check if there is a user with that email
-      const user = await app.models.User.findOne({
+      const user = await models.User.findOne({
         where: { email: args.email },
       });
 
@@ -348,9 +348,9 @@ export default (app: App) => {
       email: string,
       password: string,
       captchaResponse: string
-    }, { setCookie, clients }: { setCookie: (string, string, Object) => void, clients: AppClients }) => {
+    }, { setCookie }: { setCookie: (string, string, Object) => void }) => {
       // check captcha result before all
-      if (!await clients.captcha.verifyCaptcha(args.captchaResponse)) {
+      if (!await captchaClient.verifyCaptcha(args.captchaResponse)) {
         throw new AuthenticationError('Recaptcha verification failed, please refresh the page and try again.');
       }
 
@@ -363,7 +363,7 @@ export default (app: App) => {
       }
 
       // check if email already exists
-      const exists = await app.models.User.findOne({
+      const exists = await models.User.findOne({
         where: { email: args.email },
       });
       if (exists) {
@@ -372,7 +372,7 @@ export default (app: App) => {
 
       // all validations passed, create the user
       const passwordHash = md5(args.password);
-      const user = await app.models.User.create({
+      const user = await models.User.create({
         uuid: uuid(),
         email: args.email,
         passwordHash,
@@ -381,7 +381,7 @@ export default (app: App) => {
 
       // Sending async confirmation email
       const { from, templateId } = config.server.emails.signupConfirmation;
-      clients.mailer.sendMail({
+      mailerClient.sendMail({
         to: args.email,
         from,
         templateId,
@@ -400,32 +400,54 @@ export default (app: App) => {
     subscribeToMailList: async (parent: {}, args: {
       email: string,
       listId: string,
-    }, { clients }: { clients: AppClients }) => {
-      clients.mailer.addRecipient(args.email, args.listId);
+    }) => {
+      mailerClient.addRecipient(args.email, args.listId);
       return true;
     },
     // CHAT
-    sendMessage: (parent: {}, args: {
-      channelUUID: string,
-      senderUUID: string,
+    sendMessage: async (parent: {}, args: {
+      channelUuid: string,
       text: string,
-    }) => {
-      /* TODO bariscc: sanitize text */
-      const message = app.models.Message.create({
+    }, { user }: { user: AppUser }) => {
+      // TODO rate-limit
+      // TODO sanitize text
+      return models.Message.create({
         uuid: uuid(),
-        channelUuid: args.channelUUID,
-        senderUuid: args.senderUUID,
-        text: args.text.slice(0, 100),
+        channelUuid: args.channelUuid,
+        senderUuid: user.uuid,
+        text: args.text.slice(0, 255),
       });
-      pubsub.publish('MESSAGE_SENT', { messageSent: message });
-      return message;
     },
   };
 
+  // Using standard pubsub for chat messages. Here is how the flow works:
+  // - user sends a message
+  // - new row is created in db
+  // - pgsql NOTIFY event is fired
+  // - PostgreListener catches it, and publishes an event to pubsub instance
+  // - all active listeners (users with websocket connections) will be notified
+  const pubsub = new PubSub();
+  // eslint-disable-next-line
+  new PostgreListener(CHANNELS.CHAT_MESSAGE_NOTIFICATIONS, (payload) => {
+    pubsub.publish(CHANNELS.CHAT_MESSAGE_NOTIFICATIONS, payload.data);
+  });
+
   const Subscription = {
     messageSent: {
-      subscribe: withFilter(() => pubsub.asyncIterator('MESSAGE_SENT'), (payload, variables) => {
-        return payload.messageSent.channelUUID === variables.channelUUID;
+      resolve: async (payload) => {
+        const message = await models.Message.findOne({
+          where: { uuid: payload.uuid },
+          include: [
+            {
+              model: models.User, as: 'sender',
+            },
+          ],
+        });
+        return message.get();
+      },
+      // subscribe: () => pubsub.asyncIterator(CHANNELS.CHAT_MESSAGE_NOTIFICATIONS),
+      subscribe: withFilter(() => pubsub.asyncIterator(CHANNELS.CHAT_MESSAGE_NOTIFICATIONS), (payload, variables) => {
+        return payload.channel_uuid === variables.channelUuid;
       }),
     },
   };

@@ -1,12 +1,9 @@
 /* eslint-disable no-console */
-import path from 'path';
 import Sequelize from 'sequelize';
-import DbClient, { importModels } from '$/lib/clients/db';
+import DbClient from '$/lib/clients/db';
 
 if (['development', 'staging'].indexOf(process.env.NODE_ENV) > -1) {
-  const dbClient: Sequelize = DbClient(process.env.DATABASE_URL);
-  const modelsPath = path.join(__dirname, '../../src/models');
-  importModels(modelsPath, dbClient);
+  const dbClient: Sequelize = new DbClient().sequelize;
 
   console.log('\n>>> CREATING DB TABLES\n');
 

@@ -2,6 +2,15 @@ import Sequelize, { type DataTypes } from 'sequelize';
 
 module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
   const Message = sequelize.define('Message', {
+    uuid: {
+      type: dataTypes.UUID,
+      primaryKey: true,
+      allowNull: false,
+      field: 'uuid',
+      validate: {
+        isUUID: 4,
+      },
+    },
     channelUuid: {
       type: dataTypes.UUID,
       allowNull: false,
@@ -14,15 +23,6 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
       type: dataTypes.UUID,
       allowNull: false,
       field: 'sender_uuid',
-      validate: {
-        isUUID: 4,
-      },
-    },
-    uuid: {
-      type: dataTypes.UUID,
-      primaryKey: true,
-      allowNull: false,
-      field: 'uuid',
       validate: {
         isUUID: 4,
       },
@@ -45,6 +45,7 @@ module.exports = (sequelize: Sequelize, dataTypes: DataTypes) => {
     freezeTableName: true,
     tableName: 'messages',
   });
+
   Message.associate = (models) => {
     Message.belongsTo(models.User, {
       as: 'sender',

@@ -2,7 +2,7 @@ const items = [
   {
     uuid: '310f93c8-d76a-11e8-9f8b-f2801f1b9fd1',
     community_uuid: '6c52dc16-d6a6-11e8-9f8b-f2801f1b9fd1',
-    // user_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    // user_uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     name: 'Test Category 01',
     visibility: 'public',
     min_role_required: 'guest',
@@ -12,7 +12,7 @@ const items = [
   {
     uuid: '310f97c8-d76a-11e8-9f8b-f2801f1b9fd1',
     community_uuid: '6c52dc16-d6a6-11e8-9f8b-f2801f1b9fd1',
-    // user_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    // user_uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     name: 'Test Category 02',
     visibility: 'private',
     min_role_required: 'member',
@@ -42,7 +42,7 @@ const items = [
   {
     uuid: '310d93c8-d76a-11e8-9f8b-f2801f1b9fd1',
     community_uuid: '6c52debe-d6a6-11e8-9f8b-f2801f1b9fd1',
-    // user_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    // user_uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     name: 'Test Category 05',
     visibility: 'public',
     min_role_required: 'guest',
@@ -52,7 +52,7 @@ const items = [
   {
     uuid: '310c23c8-d76a-11e8-9f8b-f2801f1b9fd1',
     community_uuid: '6c52debe-d6a6-11e8-9f8b-f2801f1b9fd1',
-    // user_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    // user_uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     name: 'Test Category 06',
     visibility: 'private',
     min_role_required: 'member',
@@ -72,7 +72,7 @@ const items = [
   {
     uuid: '310a13c8-d76a-11e8-9f8b-f2801f1b9fd1',
     community_uuid: '6c52e274-d6a6-11e8-9f8b-f2801f1b9fd1',
-    // user_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    // user_uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     name: 'Test Category 09',
     visibility: 'public',
     min_role_required: 'guest',
@@ -82,7 +82,7 @@ const items = [
   {
     uuid: '312f93c8-d76a-11e8-9f8b-f2801f1b9fd1',
     community_uuid: '6c52e274-d6a6-11e8-9f8b-f2801f1b9fd1',
-    // user_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    // user_uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     name: 'Test Category 10',
     visibility: 'private',
     min_role_required: 'member',

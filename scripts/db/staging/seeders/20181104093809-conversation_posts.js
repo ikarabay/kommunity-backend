@@ -1,7 +1,7 @@
 const items = [
   {
     uuid: '1749067c-d78d-11e8-9f8b-f2801f1b9fd1',
-    author_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    author_uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     parent_uuid: null,
     community_uuid: '6c52dc16-d6a6-11e8-9f8b-f2801f1b9fd1',
     category_uuid: '310f93c8-d76a-11e8-9f8b-f2801f1b9fd1',
@@ -25,7 +25,7 @@ const items = [
   },
   {
     uuid: '17490a78-d78d-11e8-9f8b-f2801f1b9fd1',
-    author_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    author_uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     parent_uuid: '1749067c-d78d-11e8-9f8b-f2801f1b9fd1',
     community_uuid: '6c52dc16-d6a6-11e8-9f8b-f2801f1b9fd1',
     category_uuid: '310f93c8-d76a-11e8-9f8b-f2801f1b9fd1',
@@ -49,7 +49,7 @@ const items = [
   },
   {
     uuid: '17490ce4-d78d-11e8-9f8b-f2801f1b9fd1',
-    author_uuid: '3346776a-d69d-11e8-9f8b-f2801f1b9fd1',
+    author_uuid: 'e62d78b3-b16c-485d-81a4-49815d7d0655',
     parent_uuid: '17490bae-d78d-11e8-9f8b-f2801f1b9fd1',
     community_uuid: '6c52dc16-d6a6-11e8-9f8b-f2801f1b9fd1',
     category_uuid: '310f93c8-d76a-11e8-9f8b-f2801f1b9fd1',

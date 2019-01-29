@@ -124,6 +124,7 @@ export default gql`
     channelUuid: String
     uuid: String
     sender: UserDetails
+    senderUuid: String
     text: String
     createdAt: Date
   }
@@ -141,8 +142,8 @@ export default gql`
   }
 
   type Query {
-    getChannels(communityUUID: String!): [Channel]
-    getMessagesForChannel(channelUUID: String!, cursor: Int): ChannelMessages
+    getChannels(communityUuid: String!): [Channel]
+    getMessagesForChannel(channelUuid: String!, cursor: Int): ChannelMessages
 
     getCommunityEvents(communityUuid: ID!, limit: Int): [Event]
     getCommunityMembers(uuid: ID!): Community
@@ -169,8 +170,7 @@ export default gql`
       visibility: CommunityType
     ): Community
     sendMessage(
-      channelUUID: String
-      senderUUID: String,
+      channelUuid: String
       text: String,
     ): Message
 
@@ -188,6 +188,6 @@ export default gql`
   }
 
   type Subscription {
-    messageSent(channelUUID: String!): Message
+    messageSent(channelUuid: String!): Message
   }
 `;
