@@ -19,17 +19,17 @@ export default (clients: AppClients) => {
   const { captcha: captchaClient, db, mailer: mailerClient } = clients;
 
   const Query = {
-    getChannels: (parent: {}, args: {communityUuid: string}) => {
+    getChatChannels: (parent: {}, args: {communityUuid: string}) => {
       /* TODO bariscc: check if user has permission */
-      return db.models.Channel.findAll({
+      return db.models.ChatChannel.findAll({
         where: { communityUuid: args.communityUuid },
       });
     },
-    getMessagesForChannel: (parent: {}, args: {channelUuid: string, cursor: number}) => {
+    getChatMessagesForChannel: (parent: {}, args: {channelUuid: string, cursor: number}) => {
       const cursor = args.cursor ? args.cursor : 0;
 
       return {
-        messages: db.models.Message.findAll({
+        messages: db.models.ChatMessage.findAll({
           where: { channel_uuid: args.channelUuid },
           include: [
             {
@@ -406,13 +406,13 @@ export default (clients: AppClients) => {
       return true;
     },
     // CHAT
-    sendMessage: async (parent: {}, args: {
+    sendChatMessage: async (parent: {}, args: {
       channelUuid: string,
       text: string,
     }, { user }: { user: AppUser }) => {
       // TODO rate-limit
       // TODO sanitize text
-      return db.models.Message.create({
+      return db.models.ChatMessage.create({
         uuid: uuid(),
         channelUuid: args.channelUuid,
         senderUuid: user.uuid,
@@ -431,7 +431,7 @@ export default (clients: AppClients) => {
   const Subscription = {
     messageSent: {
       resolve: async (payload: ChatMessageType) => {
-        const message = await db.models.Message.findOne({
+        const message = await db.models.ChatMessage.findOne({
           where: { uuid: payload.uuid },
           include: [
             {

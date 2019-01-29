@@ -19,7 +19,7 @@ const channels = [
 
 module.exports = {
   up: (queryInterface) => {
-    return queryInterface.bulkInsert('channels', channels, {});
+    return queryInterface.bulkInsert('chat_channels', channels, {});
   },
   down: () => {},
 };

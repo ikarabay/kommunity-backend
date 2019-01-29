@@ -21,7 +21,7 @@ const messages = [
 
 module.exports = {
   up: (queryInterface) => {
-    return queryInterface.bulkInsert('messages', messages, {});
+    return queryInterface.bulkInsert('chat_messages', messages, {});
   },
   down: () => {},
 };

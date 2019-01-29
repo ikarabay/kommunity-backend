@@ -1,5 +1,5 @@
 const query = `
-  CREATE TRIGGER chat_message_notify AFTER INSERT OR UPDATE OR DELETE ON messages
+  CREATE TRIGGER chat_message_notify AFTER INSERT OR UPDATE OR DELETE ON chat_messages
   FOR EACH ROW EXECUTE PROCEDURE notify_trigger(
     'uuid',
     'channel_uuid',

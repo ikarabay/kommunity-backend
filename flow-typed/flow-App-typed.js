@@ -58,13 +58,13 @@ declare type AppModels = {
   User: any,
   Event: any,
   UserEvent: any,
+  ChatMessage: any,
+  ChatChannel: any,
   Community: any,
   CommunityUser: any,
   ConversationCategory: any,
   ConversationPost: any,
   UploadedItem: any,
-  Message: any,
-  Channel: any,
 };
 
 declare type AppMailerClient = {
