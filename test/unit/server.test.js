@@ -5,15 +5,15 @@ import SequelizeMock from 'sequelize-mock';
 const app = require('$/server');
 
 const mockSequelize = new SequelizeMock();
-const mockModels = {
 
-};
-
-jest.mock('../../src/lib/clients/db', () => ({
-  __esModule: true, // this property makes it work
-  default: () => mockSequelize,
-  importModels: () => mockModels,
-}));
+jest.mock('../../src/lib/clients/db', () => {
+  return jest.fn().mockImplementation(() => {
+    return {
+      listeners: { chatMessage: { subscribe: () => {} } },
+      sequelize: mockSequelize,
+    };
+  });
+});
 
 test('server returns 404', (done) => {
   http.get('http://localhost:4008/unknown-route', (res) => {

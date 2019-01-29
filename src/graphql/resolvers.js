@@ -9,18 +9,19 @@ import config from '$/config';
 import {
   AUTH_TOKEN_EXPIRE_IN_SECONDS, TOKEN_TYPE, generateTokenForUser, getUserFromToken,
 } from '$/auth/lib';
-import PostgreListener, { CHANNELS } from '$/lib/clients/db/postgre-listener';
+import { CHANNELS } from '$/lib/clients/db/postgre-listener';
+import type { ChatMessageType, PayloadType } from '$/lib/clients/db/postgre-listener';
 
 const COMMUNITY_VISIBILITY_PUBLIC = 'public';
 const MESSAGES_PAGE_SIZE = 20;
 
 export default (clients: AppClients) => {
-  const { captcha: captchaClient, db: { models, sequelize }, mailer: mailerClient } = clients;
+  const { captcha: captchaClient, db, mailer: mailerClient } = clients;
 
   const Query = {
     getChannels: (parent: {}, args: {communityUuid: string}) => {
       /* TODO bariscc: check if user has permission */
-      return models.Channel.findAll({
+      return db.models.Channel.findAll({
         where: { communityUuid: args.communityUuid },
       });
     },
@@ -28,11 +29,11 @@ export default (clients: AppClients) => {
       const cursor = args.cursor ? args.cursor : 0;
 
       return {
-        messages: models.Message.findAll({
+        messages: db.models.Message.findAll({
           where: { channel_uuid: args.channelUuid },
           include: [
             {
-              model: models.User, as: 'sender',
+              model: db.models.User, as: 'sender',
             },
           ],
           offset: MESSAGES_PAGE_SIZE * cursor,
@@ -43,18 +44,18 @@ export default (clients: AppClients) => {
     },
     getCommunityEvents: (parent: {}, args: { communityUuid: uuid, limit: number }) => {
       // returns community events for given community id
-      return models.Event.findAll({
+      return db.models.Event.findAll({
         where: { communityUuid: args.communityUuid },
         limit: args.limit || 10,
       });
     },
     getUserEvents: async (parent: {}, args: { userUuid: uuid }) => {
       // returns all events for given user uuid
-      const user = await models.User.findOne({
+      const user = await db.models.User.findOne({
         include: [
           {
             as: 'events',
-            model: models.Event,
+            model: db.models.Event,
           },
         ],
         where: { uuid: args.userUuid },
@@ -63,10 +64,10 @@ export default (clients: AppClients) => {
     },
     getCommunityMembers: (parent: {}, args: { uuid: uuid }) => {
       // returns community members for given community id
-      return models.Community.findOne({
+      return db.models.Community.findOne({
         include: [
           {
-            model: models.User, as: 'users',
+            model: db.models.User, as: 'users',
           },
         ],
         where: { uuid: args.uuid },
@@ -76,21 +77,21 @@ export default (clients: AppClients) => {
       const limit = 10;
       // TODO limit doesnt work with below query, consider updating
       // returns community members for given community id
-      const community = await models.Community.findOne({
+      const community = await db.models.Community.findOne({
         include: [
           {
-            model: models.User,
+            model: db.models.User,
             as: 'users',
           },
           {
-            model: models.CommunityUser,
+            model: db.models.CommunityUser,
           },
         ],
         // Sorting by users.CommunityUser.reputation column
         order: [
           [
-            { model: models.User, as: 'users' },
-            { model: models.CommunityUser },
+            { model: db.models.User, as: 'users' },
+            { model: db.models.CommunityUser },
             'reputation',
             'DESC',
           ],
@@ -100,23 +101,23 @@ export default (clients: AppClients) => {
       return community ? community.users.slice(0, limit) : [];
     },
     getLoggedInUserDetails: (parent: {}, args: {}, { user }: {user: AppUser}) => {
-      return models.User.findOne({
-        include: [{ as: 'communities', model: models.Community }],
+      return db.models.User.findOne({
+        include: [{ as: 'communities', model: db.models.Community }],
         where: { uuid: user.uuid },
       });
     },
     getUserDetailsByUuid: (parent: {}, args: { uuid: uuid }) => {
-      return models.User.findOne({
-        include: [{ model: models.Community }],
+      return db.models.User.findOne({
+        include: [{ model: db.models.Community }],
         where: { uuid: args.uuid },
       });
     },
     getLoggedInUserCommunities: (parent: {}, args: {}, user: AppUser) => {
       // returns user communities
-      return models.Community.findAll({
+      return db.models.Community.findAll({
         include: [
           {
-            model: models.User,
+            model: db.models.User,
             where: { uuid: user.uuid },
           },
         ],
@@ -124,10 +125,10 @@ export default (clients: AppClients) => {
     },
     getUserCommunitiesByUuid: (parent: {}, args: { uuid: uuid }) => {
       // returns public user communities
-      return models.Community.findAll({
+      return db.models.Community.findAll({
         include: [
           {
-            model: models.User,
+            model: db.models.User,
             where: { uuid: args.uuid },
           },
         ],
@@ -136,7 +137,7 @@ export default (clients: AppClients) => {
     },
     popularCommunities: () => {
       // returns communities with most members
-      return models.Community.findAll({
+      return db.models.Community.findAll({
         limit: 10,
         subQuery: false,
         attributes: [
@@ -145,17 +146,17 @@ export default (clients: AppClients) => {
           'tagline',
           'desc',
           'location',
-          [sequelize.fn('COUNT', 'CommunityUser.userUuid'), 'userCount'],
+          [db.sequelize.fn('COUNT', 'CommunityUser.userUuid'), 'userCount'],
         ],
         include: [
           {
-            model: models.CommunityUser,
+            model: db.models.CommunityUser,
             attributes: [],
           },
         ],
         where: { visibility: COMMUNITY_VISIBILITY_PUBLIC },
         group: ['uuid'],
-        order: [[sequelize.literal('"userCount"'), 'DESC']],
+        order: [[db.sequelize.literal('"userCount"'), 'DESC']],
       }).map(data => data.toJSON());
     },
     searchCommunities: (parent: {}, args: { query: string }) => {
@@ -165,7 +166,7 @@ export default (clients: AppClients) => {
           $iLike: `%${text}%`,
         };
       });
-      return models.Community.findAll({
+      return db.models.Community.findAll({
         where: {
           $or: {
             name: {
@@ -182,7 +183,7 @@ export default (clients: AppClients) => {
           $iLike: `%${text}%`,
         };
       });
-      return models.User.findAll({
+      return db.models.User.findAll({
         where: {
           $or: {
             firstName: {
@@ -213,7 +214,7 @@ export default (clients: AppClients) => {
       },
     ) => {
       // TODO avatarUploadUuid, socialLinks
-      return models.Community.create({
+      return db.models.Community.create({
         uuid: uuid(),
         name: args.name,
         tagline: args.tagline,
@@ -227,7 +228,7 @@ export default (clients: AppClients) => {
       email: string,
     }) => {
       // check if there is a user with that email
-      const user = await models.User.findOne({
+      const user = await db.models.User.findOne({
         where: { email: args.email },
       });
 
@@ -275,7 +276,7 @@ export default (clients: AppClients) => {
       }
 
       // check if there is a user with that email
-      const user = await models.User.findOne({
+      const user = await db.models.User.findOne({
         where: { email: tokenUser.email },
       });
 
@@ -316,7 +317,7 @@ export default (clients: AppClients) => {
       password: string
     }, { setCookie }: { setCookie: (string, string, Object) => void }) => {
       // check if there is a user with that email
-      const user = await models.User.findOne({
+      const user = await db.models.User.findOne({
         where: { email: args.email },
       });
 
@@ -363,7 +364,7 @@ export default (clients: AppClients) => {
       }
 
       // check if email already exists
-      const exists = await models.User.findOne({
+      const exists = await db.models.User.findOne({
         where: { email: args.email },
       });
       if (exists) {
@@ -372,7 +373,7 @@ export default (clients: AppClients) => {
 
       // all validations passed, create the user
       const passwordHash = md5(args.password);
-      const user = await models.User.create({
+      const user = await db.models.User.create({
         uuid: uuid(),
         email: args.email,
         passwordHash,
@@ -411,7 +412,7 @@ export default (clients: AppClients) => {
     }, { user }: { user: AppUser }) => {
       // TODO rate-limit
       // TODO sanitize text
-      return models.Message.create({
+      return db.models.Message.create({
         uuid: uuid(),
         channelUuid: args.channelUuid,
         senderUuid: user.uuid,
@@ -420,32 +421,26 @@ export default (clients: AppClients) => {
     },
   };
 
-  // Using standard pubsub for chat messages. Here is how the flow works:
-  // - user sends a message
-  // - new row is created in db
-  // - pgsql NOTIFY event is fired
-  // - PostgreListener catches it, and publishes an event to pubsub instance
-  // - all active listeners (users with websocket connections) will be notified
+  // Using standard pubsub for chat messages
+  // See db.listeners.chatMessage for more details
   const pubsub = new PubSub();
-  // eslint-disable-next-line
-  new PostgreListener(CHANNELS.CHAT_MESSAGE_NOTIFICATIONS, (payload) => {
+  db.listeners.chatMessage.subscribe((payload: PayloadType) => {
     pubsub.publish(CHANNELS.CHAT_MESSAGE_NOTIFICATIONS, payload.data);
   });
 
   const Subscription = {
     messageSent: {
-      resolve: async (payload) => {
-        const message = await models.Message.findOne({
+      resolve: async (payload: ChatMessageType) => {
+        const message = await db.models.Message.findOne({
           where: { uuid: payload.uuid },
           include: [
             {
-              model: models.User, as: 'sender',
+              model: db.models.User, as: 'sender',
             },
           ],
         });
         return message.get();
       },
-      // subscribe: () => pubsub.asyncIterator(CHANNELS.CHAT_MESSAGE_NOTIFICATIONS),
       subscribe: withFilter(() => pubsub.asyncIterator(CHANNELS.CHAT_MESSAGE_NOTIFICATIONS), (payload, variables) => {
         return payload.channel_uuid === variables.channelUuid;
       }),

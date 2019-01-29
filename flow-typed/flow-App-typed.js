@@ -1,4 +1,5 @@
-import { type Options as SequelizeOptions } from 'sequelize';
+import { type Options as SequelizeOptions, Sequelize } from 'sequelize';
+import { type PostgreListener } from '../src/lib/clients/db/postgre-listener';
 
 declare module 'config' {
   declare module.exports: any;
@@ -75,7 +76,12 @@ declare type AppCaptchaClient = {
   verifyCaptcha: (string) => Promise<boolean>,
 }
 
+declare type AppDbClientListeners = {
+  chatMessage: PostgreListener
+}
+
 declare type AppDbClient = {
+  listeners: AppDbClientListeners,
   sequelize: Sequelize,
   models: AppModels,
 }
@@ -85,12 +91,3 @@ declare type AppClients = {
   db: AppDbClient,
   mailer: AppMailerClient,
 };
-
-declare class exExpress$Request extends express$Request {
-  // Community flow-typed custom methods
-  // body: mixed;
-  body: any;
-  user: AppUser;
-  logout: () => void;
-  isAuthenticated: () => boolean;
-}

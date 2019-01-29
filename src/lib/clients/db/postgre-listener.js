@@ -1,9 +1,28 @@
 /* eslint-disable no-console, no-underscore-dangle, no-empty */
 import pg from 'pg';
+import type { Client } from 'pg';
+import * as Sentry from '@sentry/node';
 
 export const CHANNELS = {
   CHAT_MESSAGE_NOTIFICATIONS: 'chat_message_notifications',
 };
+
+export type ChatMessageType = {
+  uuid: string,
+  channelUuid: string,
+  senderUuid: string,
+  text: string,
+};
+
+export type PayloadType = {
+  timestamp: string,
+  operation: string,
+  schema: string,
+  table: string,
+  data: ChatMessageType,
+};
+
+type onNotifyType = (PayloadType) => void;
 
 // TODO consider using something more complex like
 // https://github.com/andywer/pg-listen/blob/master/src/index.ts
@@ -12,19 +31,26 @@ export const CHANNELS = {
 // or (this one looks pretty well)
 // https://github.com/voxpelli/node-pg-pubsub
 class PostgreListener {
-  constructor(channel, onNotify) {
+  subscribers: Array<onNotifyType>;
+  channel: string;
+  databaseUrl: string;
+  client: Client;
+
+  constructor(databaseUrl: string, channel: string) {
     this.channel = channel;
-    this.onNotify = onNotify;
+    this.databaseUrl = databaseUrl;
+    this.subscribers = [];
     this.init();
   }
 
   init = async () => {
-    this.client = new pg.Client(process.env.DATABASE_URL);
+    this.client = new pg.Client(this.databaseUrl);
     await this.client.connect();
-    // TODO log to sentry
-    // TODO check for production before logging
     this.client.on('error', (err) => {
-      console.error('POSTGRE_PUBSUB_FAILED', err.stack);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('POSTGRE_PUBSUB_FAILED', err);
+      }
+      Sentry.captureException(err);
     });
     this.client.on('notification', this.onNotification);
     this.listen();
@@ -35,27 +61,34 @@ class PostgreListener {
     await this.client.query(statement);
   }
 
+  subscribe = (subscriber: onNotifyType) => {
+    this.subscribers.push(subscriber);
+  }
+
+  // Database trigger actually notifies about events
+  // Keeping below code in case we need it
+  /*
   notify = async (msg: string) => {
     if (!msg) {
       return;
     }
-    const encodedMsg = typeof payload !== 'string' ? JSON.stringify(msg) : msg;
+    const encodedMsg = typeof msg !== 'string' ? JSON.stringify(msg) : msg;
     const statement = `NOTIFY ${this.client.escapeIdentifier(this.channel)}, ${this.client.escapeLiteral(encodedMsg)}`;
     await this.client.query(statement);
   };
+  */
 
-  onNotification = ({ payload }) => {
-    let decodedPayload = payload;
+  onNotification = ({ payload }: { payload: string }) => {
     try {
-      decodedPayload = JSON.parse(payload);
-    } catch (err) {}
-    // TODO consider using debug npm package to avoid these prod checks in many files
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`DB notification on channel: ${this.channel}, payload:`);
-      console.log(decodedPayload);
-    }
-    if (this.onNotify) {
-      this.onNotify(decodedPayload);
+      const decodedPayload = JSON.parse(payload);
+      // TODO consider using debug npm package to avoid these prod checks in many files
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`DB notification on channel: ${this.channel}, payload:`);
+        console.log(decodedPayload);
+      }
+      this.subscribers.forEach(subscriber => subscriber(decodedPayload));
+    } catch (error) {
+      Sentry.captureException(error);
     }
   };
 }

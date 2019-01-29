@@ -109,7 +109,7 @@ export default class App {
     this.startServer();
 
     // eslint-disable-next-line
-    this.express.use((req: exExpress$Request, res: express$Response, next: express$NextFunction) => {
+    this.express.use((req: express$Request, res: express$Response, next: express$NextFunction) => {
       res.statusCode = 404;
       res.json({ message: 'not_found' });
     });
@@ -121,7 +121,7 @@ export default class App {
 
     // Optional fallthrough error handler
     // eslint-disable-next-line
-    this.express.use((err: Error, req: exExpress$Request, res: express$Response, next: express$NextFunction) => {
+    this.express.use((err: Error, req: express$Request, res: express$Response, next: express$NextFunction) => {
       res.statusCode = 500;
       // eslint-disable-next-line no-underscore-dangle
       res.json({ message: 'internal_error', eventId: Sentry.getCurrentHub()._lastEventId });
@@ -130,7 +130,7 @@ export default class App {
 
   initRoutes = (): void => {
     const router: express$Router = Express.Router();
-    router.get('/health', (req: exExpress$Request, res: express$Response) => {
+    router.get('/health', (req: express$Request, res: express$Response) => {
       res.end('OK');
     });
     this.express.use('/', router);

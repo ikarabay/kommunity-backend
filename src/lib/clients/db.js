@@ -2,17 +2,23 @@ import path from 'path';
 import Sequelize from 'sequelize';
 import { getAllFiles } from '../helpers';
 
+import PostgreListener, { CHANNELS } from './db/postgre-listener';
+
 const srcPath = path.join(path.resolve(), 'src');
 const modelsPath = path.join(srcPath, 'models');
 
 class DbClient {
+  listeners: AppDbClientListeners;
+  sequelize: Sequelize;
+  models: AppModels;
+
   constructor() {
-    if (process.env.NODE_ENV !== 'test'
-      && typeof process.env.DATABASE_URL !== 'string') {
+    const databaseUrl = process.env.DATABASE_URL || '';
+    if (!databaseUrl) {
       throw new Error('Database connecting string is missing!');
     }
 
-    this.sequelize = new Sequelize(process.env.DATABASE_URL || '', {
+    this.sequelize = new Sequelize(databaseUrl, {
       logging: function logging(query) {
         if (process.env.NODE_ENV !== 'production') {
           // eslint-disable-next-line
@@ -21,6 +27,18 @@ class DbClient {
       },
     });
     this.models = this.importModels();
+
+    // Listeners use PostgreSQL LISTEN/NOTIFY commands to listen channels,
+    //   and get notified about events (insert/update/delete etc).
+    // Here is how the flow works:
+    // - user sends a message
+    // - new row is created in db
+    // - pgsql NOTIFY event is fired
+    // - PostgreListener catches it, and publishes an event to pubsub instance
+    // - all active listeners (users with websocket connections) will be notified
+    this.listeners = {
+      chatMessage: new PostgreListener(databaseUrl, CHANNELS.CHAT_MESSAGE_NOTIFICATIONS),
+    };
   }
 
   importModels = (): AppModels => {
