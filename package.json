@@ -17,7 +17,7 @@
     "flow-coverage": "flow coverage --color",
     "flow-typed-add": "flow-typed install",
     "db-mock-setup": "babel-node scripts/db/mock-setup.js && sequelize db:migrate && sequelize db:seed:all && echo DB SETUP COMPLETE!",
-    "db-mock-full-setup": "sequelize db:drop || sleep 5 && sequelize db:create && babel-node scripts/db/mock-setup.js && sequelize db:migrate && sequelize db:seed:all && echo DB SETUP COMPLETE!",
+    "db-mock-full-setup": "sequelize db:drop || sleep 5 && npm run db-mock-setup",
     "CONTAINER_SCRIPTS": "-------------------------------",
     "container:start": "docker-compose up --build --force-recreate -d && docker-compose logs -f",
     "container:setup": "npm run container:web-exec -- \"npm run db-mock-full-setup\"",

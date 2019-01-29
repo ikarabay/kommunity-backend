@@ -173,3 +173,6 @@ Commands you need:
 
 - See logs:
 `heroku logs --tail`
+
+- Connect to remote db:
+`heroku pg:psql -a staging-backend-kommunity`
