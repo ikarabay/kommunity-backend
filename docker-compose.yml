@@ -16,10 +16,11 @@ services:
       REDIS_URL: redis://kommunitybackend_redis
   db:
     container_name: kommunitybackend_db
-    image: postgres:latest
+    image: postgres:10.6
     ports:
       - "5432:5432"
     environment:
+      POSTGRES_DB: community-development
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
   db-admin:
@@ -33,5 +34,5 @@ services:
       PGADMIN_DEFAULT_EMAIL: dev@selmankahya.com
       PGADMIN_DEFAULT_PASSWORD: selman
   redis:
-    image: redis
+    image: redis:3.2.12
     container_name: kommunitybackend_redis

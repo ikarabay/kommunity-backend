@@ -1,9 +1,11 @@
 /* eslint-disable no-useless-escape, max-len */
-// https://gist.github.com/colophonemes/9701b906c5be572a40a84b08f4d2fa4e
 
-const query = `
+// TODO move these queries to migrations before BETA Launch!!!
+
+// https://gist.github.com/colophonemes/9701b906c5be572a40a84b08f4d2fa4e
+const createFunction = `
   -- Trigger notification for messaging to PG Notify
-  CREATE FUNCTION notify_trigger() RETURNS trigger AS $trigger$
+  CREATE OR REPLACE FUNCTION notify_trigger() RETURNS trigger AS $trigger$
   DECLARE
     rec RECORD;
     payload TEXT;
@@ -47,10 +49,24 @@ const query = `
   $trigger$ LANGUAGE plpgsql;
 `;
 
+const createTrigger = `
+  CREATE TRIGGER chat_message_notify AFTER INSERT OR UPDATE OR DELETE ON chat_messages
+  FOR EACH ROW EXECUTE PROCEDURE notify_trigger(
+    'uuid',
+    'channel_uuid',
+    'created_at',
+    'sender_uuid',
+    'text'
+  );
+`;
+
 module.exports = {
   up: (queryInterface) => {
-    return queryInterface.sequelize.query(query);
+    return new Promise((resolve) => {
+      queryInterface.sequelize.query(createFunction).then(() => {
+        queryInterface.sequelize.query(createTrigger).then(() => resolve());
+      });
+    });
   },
-
-  down: (/* queryInterface, Sequelize */) => {},
+  down: () => {},
 };

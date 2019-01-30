@@ -17,17 +17,18 @@
     "flow-coverage": "flow coverage --color",
     "flow-typed-add": "flow-typed install",
     "db-mock-setup": "babel-node scripts/db/mock-setup.js && sequelize db:migrate && sequelize db:seed:all && echo DB SETUP COMPLETE!",
-    "db-mock-full-setup": "sequelize db:drop || sleep 5 && npm run db-mock-setup",
+    "db-mock-full-setup": "sequelize db:drop || sleep 5 && sequelize db:create && npm run db-mock-setup",
     "CONTAINER_SCRIPTS": "-------------------------------",
     "container:start": "docker-compose up --build --force-recreate -d && docker-compose logs -f",
-    "container:setup": "npm run container:web-exec -- \"npm run db-mock-full-setup\"",
+    "container:setup": "npm run container:web-exec -- \"npm run db-mock-setup\"",
     "container:list": "docker ps",
     "container:exec": "docker exec -i",
     "container:web-exec": "sh -c 'docker exec -i $(docker ps --filter name=kommunitybackend_web -q) $1' sh",
     "container:web-sh": "docker-compose exec web sh",
     "container:db-exec": "docker ps --filter name=kommunitybackend_db -q | xargs sh -c 'docker exec -i $2 $1' sh",
     "container:db-sh": "docker-compose exec db sh",
-    "container:reset": "docker-compose stop && docker-compose rm -f && run-s -nl container:start"
+    "container:reset": "docker-compose stop && docker-compose rm -f && run-s -nl container:start",
+    "container:reset-force": "docker system prune -a"
   },
   "pre-push": [
     "check-if-not-committed",
